@@ -96,7 +96,8 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
 -   `SCREW_CENTRES`: the three M2 locations from the mechanical drawing.
 -   `ENABLE_RECESSED_SCREW_WELLS` and the `SCREW_WELL_*` parameters: control
     the three guided screw recesses and their bottom shoulders. With the
-    13.5 mm main section, each bump projects 1.9 mm inward from the rear wall.
+    13.5 mm main section and 1 mm depth reduction, each bump projects 0.9 mm
+    inward from the rear wall.
 -   `PIN8_OPENING`, `SPEAKER_OPENING`, `BATTERY_OPENING`: rear connector  
     openings as `(centre_x, centre_z, width, height)`.
 -   `BASE_MIC_CENTRES_X`: estimated bottom acoustic-port centres beside USB-C.
