@@ -30,7 +30,9 @@ cover generated in Blender. It contains:
     walls and the base top wall, using support-friendly 2 mm holes;
 -   one microphone hole on each side of USB-C through the base bottom; and
 -   matching seven-hole honeycomb microphone/air rosettes through the
-    accessory-layer bottom.
+    accessory-layer bottom; and
+-   an optional simplified ESP32 fit-check assembly in a separate viewport-only
+    collection, excluded from both STL files.
 
 The supplied mechanical drawings are the dimensional reference. The microphone
 acoustic-port centres are not dimensioned on those drawings, so their bottom
@@ -64,19 +66,25 @@ blender --background --python blender_enclosure.py -- \
 All measurements use millimetres and are grouped under `USER PARAMETERS`.
 
 -   `CASE_WIDTH`, `CASE_HEIGHT`, `CASE_DEPTH`: overall square enclosure size;
-    depth defaults to 14.0 mm and automatically grows if thicker walls require
-    more space for the device.
+    the main display section now uses a compact 13.5 mm depth.
 -   `ENCLOSURE_THICKNESS`: side, front, and rear wall thickness, currently
     1.20 mm.
 -   `OUTER_CORNER_RADIUS`: currently `0.0`, producing sharp square corners;
     set it above zero when rounded corners are restored.
 -   `DEVICE_REAR_CLEARANCE` and `DEVICE_RADIAL_CLEARANCE`: required fit
-    allowances checked whenever dimensions or wall thickness change. Rear
-    clearance is now 0.10 mm to fit the 12.70 mm hardware in the 14 mm section.
+    allowances checked whenever dimensions or wall thickness change.
+-   `ALLOW_REAR_CONNECTOR_PROTRUSION`: allows the deeper 8-pin, battery, and
+    speaker connectors to pass through their existing rear openings into the
+    accessory chamber. The 10.40 mm core hardware stack remains inside the
+    13.5 mm main section.
 -   `DISPLAY_POCKET_DIAMETER`: shallow recess for the Ø48.96 mm display.
 -   `DISPLAY_RECESS_DEPTH`: 2.05 mm, matching the protruding display stack.
 -   `BOARD_OPENING_DIAMETER`: 46.70 mm through-opening for the Ø46.00 mm PCB,
     providing 0.35 mm radial clearance.
+-   `DISPLAY_VERTICAL_RADIUS_COMPENSATION`: adds 0.20 mm to the vertical radius
+    of both stepped display openings while leaving their horizontal radii
+    unchanged. The modeled openings are subtle ellipses intended to print
+    circular when the enclosure is printed upright.
 -   `DISPLAY_PLATFORM_THICKNESS` and `DISPLAY_SUPPORT_WALL_THICKNESS`: both
     follow the 1.20 mm enclosure thickness. The sleeve and flat ring are fused
     into one watertight display cup before it is joined to the shell, preventing
@@ -87,17 +95,16 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     all four cable windows; their default width is 10.0 mm.
 -   `SCREW_CENTRES`: the three M2 locations from the mechanical drawing.
 -   `ENABLE_RECESSED_SCREW_WELLS` and the `SCREW_WELL_*` parameters: control
-    the three guided screw recesses and their bottom shoulders. The default
-    `SCREW_WELL_DEPTH_REDUCTION` shortens each bump by 1.5 mm. With the 14 mm
-    main section, each bump projects 0.9 mm inward from the rear wall.
+    the three guided screw recesses and their bottom shoulders. With the
+    13.5 mm main section, each bump projects 1.9 mm inward from the rear wall.
 -   `PIN8_OPENING`, `SPEAKER_OPENING`, `BATTERY_OPENING`: rear connector  
     openings as `(centre_x, centre_z, width, height)`.
 -   `BASE_MIC_CENTRES_X`: estimated bottom acoustic-port centres beside USB-C.
 -   `USB_C_OPENING_WIDTH`, `USB_C_OPENING_DEPTH`, and
     `USB_C_CENTRE_FROM_FRONT`: STEP-derived bottom-side USB-C geometry. The
     receptacle envelope is 9.58 × 4.16 mm. The cutout is now 11.58 × 6.16 mm,
-    providing 1.0 mm clearance on every side. Its center is 9.39 mm behind the
-    display after the latest 2.40 mm move toward the base/rear. The
+    providing 1.0 mm clearance on every side. Its center is 7.99 mm behind the
+    display after the latest 0.40 mm move toward the display/front. The
     cutout uses the connector's rounded capsule profile rather than a box.
 -   `USB_C_TUNNEL_LENGTH` and `USB_C_TUNNEL_WALL`: internal guide sleeve
     length and wall thickness.
@@ -121,6 +128,10 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     top and one bottom clip with matching release slots. Both clips sit in the
     X-axis gap between the GPS/speaker and battery footprints. All retention
     features remain inside the 60 × 60 mm outline.
+-   `ENABLE_COVER_ALIGNMENT_SKIRT` and the `ACCESSORY_ALIGNMENT_SKIRT_*`
+    parameters add a shallow internal tongue around the cover. It nests inside
+    the four case walls to prevent vertical and lateral panel movement while
+    leaving the exterior flat.
 -   `ENABLE_SPEAKER_VENTS` and the `SPEAKER_VENT_*` parameters: control the
     rear-cover speaker grille pattern.
 -   `ENABLE_BASE_AIR_VENTS`, `BASE_AIR_VENT_PITCH`, and the related row/column
@@ -128,6 +139,11 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     display enclosure.
 -   `ENABLE_BASE_MIC_PORTS` and the `BASE_MIC_*` parameters: control the two
     bottom microphone holes beside USB-C.
+-   `ENABLE_DUMMY_ESP32`: shows the drawing/STEP-measured display stack,
+    carrier envelope, PCB, USB-C, major connectors, microphones, and screw
+    bosses in the
+    `FIT_CHECK_DUMMY_ESP32` Blender collection. Hide the collection for a clean
+    enclosure view; it is never included in STL exports.
 -   `ENABLE_ACCESSORY_BOTTOM_MIC_VENTS` and the
     `ACCESSORY_BOTTOM_MIC_VENT_*` parameters: control the matching holes in the
     accessory-layer bottom wall.

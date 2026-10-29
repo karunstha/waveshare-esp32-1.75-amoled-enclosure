@@ -17,6 +17,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+import bmesh
 import bpy
 
 
@@ -26,11 +27,13 @@ import bpy
 
 # Hardware envelope and fit allowances
 MODULE_MAX_DEPTH = 12.70
-# The 14 mm main section leaves 0.10 mm behind the 12.70 mm hardware once the
-# 1.20 mm rear wall is included.
+# The core stack ends at 10.40 mm. Deeper connectors intentionally pass through
+# their rear openings into the accessory chamber in the compact 13.5 mm case.
+NON_CONNECTOR_HARDWARE_DEPTH = 10.40
 DEVICE_REAR_CLEARANCE = 0.10
 DEVICE_RADIAL_CLEARANCE = 1.00
-MIN_CASE_DEPTH = 14.0
+MIN_CASE_DEPTH = 13.5
+ALLOW_REAR_CONNECTOR_PROTRUSION = True
 
 # Enclosure envelope
 CASE_WIDTH = 60.0
@@ -39,11 +42,15 @@ ENCLOSURE_THICKNESS = 1.20
 SIDE_WALL = ENCLOSURE_THICKNESS
 FRONT_WALL = ENCLOSURE_THICKNESS
 REAR_WALL = ENCLOSURE_THICKNESS
-# Depth grows automatically if a future wall-thickness increase would consume
-# the STEP-derived hardware envelope or the requested rear clearance.
-CASE_DEPTH = max(
-    MIN_CASE_DEPTH,
-    MODULE_MAX_DEPTH + DEVICE_REAR_CLEARANCE + REAR_WALL,
+# In compact mode, connector bodies use the existing rear cutouts rather than
+# forcing the complete case to match the STEP assembly's 12.70 mm maximum.
+CASE_DEPTH = (
+    MIN_CASE_DEPTH
+    if ALLOW_REAR_CONNECTOR_PROTRUSION
+    else max(
+        MIN_CASE_DEPTH,
+        MODULE_MAX_DEPTH + DEVICE_REAR_CLEARANCE + REAR_WALL,
+    )
 )
 # Match the display cup to the printable shell: three 0.40 mm extrusion lines.
 DISPLAY_PLATFORM_THICKNESS = ENCLOSURE_THICKNESS
@@ -65,6 +72,15 @@ DISPLAY_DIAMETRAL_CLEARANCE = 0.40
 BOARD_DIAMETRAL_CLEARANCE = 0.70
 DISPLAY_POCKET_DIAMETER = DISPLAY_OUTER_DIAMETER + DISPLAY_DIAMETRAL_CLEARANCE
 BOARD_OPENING_DIAMETER = BOARD_OUTER_DIAMETER + BOARD_DIAMETRAL_CLEARANCE
+# Upright-print compensation: add 0.20 mm only to the vertical radius. The
+# horizontal radius remains nominal, producing a subtle ellipse in the model.
+DISPLAY_VERTICAL_RADIUS_COMPENSATION = 0.20
+DISPLAY_POCKET_VERTICAL_DIAMETER = (
+    DISPLAY_POCKET_DIAMETER + 2 * DISPLAY_VERTICAL_RADIUS_COMPENSATION
+)
+BOARD_OPENING_VERTICAL_DIAMETER = (
+    BOARD_OPENING_DIAMETER + 2 * DISPLAY_VERTICAL_RADIUS_COMPENSATION
+)
 
 # Cable reliefs interrupt the circular display seat at all four cardinal sides.
 # Each 10 mm notch runs radially across the full support band.
@@ -83,10 +99,11 @@ SCREW_CENTRES = (
 
 # Recessed screw cups project inward from the rear wall toward the three
 # M2 x 3.5 mm threaded standoffs. The drawing places the standoff tips 10.40 mm
-# behind the flush display surface; the cups intentionally stop 1.5 mm short.
+# behind the flush display surface.
 ENABLE_RECESSED_SCREW_WELLS = True
 SCREW_MOUNT_DEPTH_FROM_FRONT = 10.40
-SCREW_WELL_DEPTH_REDUCTION = 1.50
+# The shallower case sets the inward bump to 1.90 mm.
+SCREW_WELL_DEPTH_REDUCTION = 0.00
 SCREW_WELL_INNER_DIAMETER = 5.00
 SCREW_WELL_WALL_THICKNESS = ENCLOSURE_THICKNESS
 SCREW_WELL_FLOOR_THICKNESS = ENCLOSURE_THICKNESS
@@ -94,8 +111,10 @@ SCREW_WELL_FLOOR_THICKNESS = ENCLOSURE_THICKNESS
 # Rear connector openings. Tuple values are (centre_x, centre_z, width, height).
 # Add tolerance here instead of editing boolean operations below.
 PIN8_OPENING = (-18.30, 0.00, 5.20, 21.00)
-SPEAKER_OPENING = (+17.50, +7.50, 6.50, 6.00)
-BATTERY_OPENING = (+17.50, -7.50, 6.50, 6.00)
+# These two openings use the STEP connector centers and 1.0 mm total vertical
+# clearance around their 7.65 mm envelopes.
+SPEAKER_OPENING = (+17.50, +6.49, 6.50, 8.65)
+BATTERY_OPENING = (+17.50, -6.81, 6.50, 8.65)
 
 # Optional rear access hole for reaching/removing 3D-print support material.
 # Ø28 mm stays centered and clear of the existing rear connector cutouts.
@@ -130,6 +149,10 @@ GPS_SCREW_KEEP_OUT_MARGIN = 1.0
 # narrow X gap between the left modules and battery, avoiding all components.
 ACCESSORY_COVER_THICKNESS = ENCLOSURE_THICKNESS
 ENABLE_FLUSH_SNAP_COVER = True
+ENABLE_COVER_ALIGNMENT_SKIRT = True
+ACCESSORY_ALIGNMENT_SKIRT_DEPTH = 1.00
+ACCESSORY_ALIGNMENT_SKIRT_THICKNESS = 0.40
+ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE = 0.20
 ACCESSORY_SNAP_CLIP_LENGTH = 6.0
 ACCESSORY_SNAP_CLIP_THICKNESS = 0.80
 ACCESSORY_SNAP_CLIP_WIDTH = 3.0
@@ -150,7 +173,7 @@ SPEAKER_VENT_PITCH = 3.20
 # deliberate and leaves enough material at the wall edges.
 ENABLE_BASE_AIR_VENTS = True
 BASE_AIR_VENT_DIAMETER = 2.00
-BASE_AIR_VENT_PITCH = 3.40
+BASE_AIR_VENT_PITCH = 3.20
 BASE_SIDE_VENT_COLUMNS = 4
 BASE_SIDE_VENT_ROWS = 15
 BASE_TOP_VENT_COLUMNS = 13
@@ -181,13 +204,42 @@ USB_C_CUTOUT_CLEARANCE = 2.00
 USB_C_OPENING_WIDTH = USB_C_RECEPTACLE_WIDTH + USB_C_CUTOUT_CLEARANCE
 USB_C_OPENING_DEPTH = USB_C_RECEPTACLE_DEPTH + USB_C_CUTOUT_CLEARANCE
 # Start from 10.07 mm, move toward the display by half the finished opening
-# depth, then move 2.40 mm back down toward the base/rear.
+# depth, move 2.40 mm toward the base/rear, then move the tunnel 1.40 mm back
+# up toward the display.
 USB_C_CENTRE_FROM_FRONT = (
-    10.07 - USB_C_OPENING_DEPTH / 2.0 + 2.40
+    10.07 - USB_C_OPENING_DEPTH / 2.0 + 2.40 - 1.40
 )
 ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
+
+# Optional simplified viewport-only hardware for checking enclosure fit. These
+# measurements are taken from the supplied drawing and STEP bounding boxes.
+# Objects are stored in their own collection and are never selected for STL.
+ENABLE_DUMMY_ESP32 = True
+DUMMY_PCB_FRONT_FROM_DISPLAY = 5.70
+DUMMY_PCB_THICKNESS = 1.20
+DUMMY_CARRIER_FRONT_FROM_DISPLAY = 2.05
+DUMMY_CARRIER_DEPTH = 3.65
+DUMMY_CARRIER_WIDTH = 40.80
+DUMMY_CARRIER_HEIGHT = 46.00
+DUMMY_CARRIER_CENTRE_X = -2.60
+DUMMY_USB_C_CENTRE_FROM_FRONT = 8.07
+DUMMY_USB_C_CENTRE_X = 0.02
+DUMMY_USB_C_CENTRE_Z = -20.03
+DUMMY_USB_C_HEIGHT = 7.53
+DUMMY_SCREW_BOSS_DIAMETER = 3.50
+DUMMY_SCREW_BOSS_FRONT_FROM_DISPLAY = 5.90
+DUMMY_SCREW_BOSS_DEPTH = 4.50
+
+# Boxes use (name, centre_x, centre_from_front, centre_z, width, depth, height).
+DUMMY_MAJOR_COMPONENT_BOXES = (
+    ("8_Pin_Header", 18.68, 8.30, 0.00, 2.40, 8.80, 20.85),
+    ("Speaker_Connector", -17.50, 9.30, 6.49, 4.20, 4.80, 7.65),
+    ("Battery_Connector", -17.50, 9.30, -6.81, 4.20, 4.80, 7.65),
+    ("Microphone_Left", -10.96, 7.50, -17.54, 4.24, 1.00, 3.95),
+    ("Microphone_Right", 11.74, 7.50, -17.35, 4.28, 1.00, 4.08),
+)
 
 # Mesh quality
 CYLINDER_VERTICES = 128
@@ -195,6 +247,7 @@ CYLINDER_VERTICES = 128
 # are visually circular while dramatically reducing Boolean workload.
 VENT_CYLINDER_VERTICES = 32
 BOOLEAN_MARGIN = 1.0
+DIMENSION_EPSILON = 1e-6
 
 
 @dataclass(frozen=True)
@@ -323,6 +376,34 @@ def add_y_cylinder(
     return obj
 
 
+def add_y_ellipse(
+    name: str,
+    horizontal_diameter: float,
+    vertical_diameter: float,
+    depth: float,
+    location=(0, 0, 0),
+    vertices: int = CYLINDER_VERTICES,
+):
+    """Add a transform-normalized elliptical cylinder along global Y."""
+    if horizontal_diameter <= 0 or vertical_diameter <= 0 or depth <= 0:
+        raise ValueError("Ellipse dimensions must be positive.")
+    obj = add_y_cylinder(
+        name,
+        horizontal_diameter,
+        depth,
+        location=location,
+        vertices=vertices,
+    )
+    bpy.context.view_layer.objects.active = obj
+    # Bake the 90-degree cylinder rotation first. Scaling Z before doing this
+    # can elongate a local axis that Blender later maps into the cut depth,
+    # producing malformed or unstable Boolean results.
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+    obj.scale.z = vertical_diameter / horizontal_diameter
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    return obj
+
+
 def add_x_cylinder(
     name: str,
     diameter: float,
@@ -371,6 +452,18 @@ def apply_bevel(obj, width: float, segments: int = 3) -> None:
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
+def configure_exact_boolean(modifier) -> None:
+    """Make EXACT Booleans tolerate coplanar faces and touching shells.
+
+    Without these options the many unions/cuts that land on the rear-wall plane
+    leave edges shared by three faces, which slicers report as non-manifold.
+    """
+    if modifier.solver != "EXACT":
+        return
+    modifier.use_self = True
+    modifier.use_hole_tolerant = True
+
+
 def subtract(target, cutter, solver: str = "EXACT") -> None:
     modifier = target.modifiers.new(name=f"Cut_{cutter.name}", type="BOOLEAN")
     modifier.operation = "DIFFERENCE"
@@ -380,6 +473,7 @@ def subtract(target, cutter, solver: str = "EXACT") -> None:
         # Blender 5.x renamed the FAST solver to FLOAT.
         modifier.solver = "FLOAT" if solver == "FAST" else solver
     modifier.object = cutter
+    configure_exact_boolean(modifier)
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier=modifier.name)
     bpy.data.objects.remove(cutter, do_unlink=True)
@@ -404,6 +498,7 @@ def unite(target, addition) -> None:
     modifier.operation = "UNION"
     modifier.solver = "EXACT"
     modifier.object = addition
+    configure_exact_boolean(modifier)
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier=modifier.name)
     bpy.data.objects.remove(addition, do_unlink=True)
@@ -446,18 +541,22 @@ def cut_display_cable_reliefs(
     cut_depth: float,
     outer_diameter: float,
     inner_diameter: float,
+    vertical_radius_compensation: float = 0.0,
 ) -> None:
     """Remove top, bottom, left, and right windows across the support band."""
     if not ENABLE_DISPLAY_CABLE_RELIEFS:
         return
     radial_band = (outer_diameter - inner_diameter) / 2.0
     relief_height = radial_band + 2 * BOOLEAN_MARGIN
-    relief_center_z = (outer_diameter + inner_diameter) / 4.0
+    horizontal_relief_center = (outer_diameter + inner_diameter) / 4.0
+    vertical_relief_center = (
+        horizontal_relief_center + vertical_radius_compensation
+    )
     for label, direction in (("Top", 1.0), ("Bottom", -1.0)):
         cutter = add_box(
             f"{name_prefix}_{label}_Cable_Relief",
             (DISPLAY_CABLE_RELIEF_WIDTH, cut_depth, relief_height),
-            location=(0.0, y, direction * relief_center_z),
+            location=(0.0, y, direction * vertical_relief_center),
         )
         subtract(target, cutter)
 
@@ -465,7 +564,7 @@ def cut_display_cable_reliefs(
         cutter = add_box(
             f"{name_prefix}_{label}_Cable_Relief",
             (relief_height, cut_depth, DISPLAY_CABLE_RELIEF_WIDTH),
-            location=(direction * relief_center_z, y, 0.0),
+            location=(direction * horizontal_relief_center, y, 0.0),
         )
         subtract(target, cutter)
 
@@ -488,11 +587,13 @@ def add_module_corner_holders(
         for z_sign in (-1.0, 1.0):
             x_wall = add_box(
                 f"{module.name}_Corner_X_{int(x_sign)}_{int(z_sign)}",
-                (wall, holder_depth, arm),
+                # Extended over the corner so it overlaps the Z arm in volume;
+                # face-only contact leaves a coincident internal seam.
+                (wall, holder_depth, arm + wall),
                 location=(
                     module.x + x_sign * (half_w + wall / 2.0),
                     holder_y,
-                    module.z + z_sign * (half_h - arm / 2.0),
+                    module.z + z_sign * (half_h - arm / 2.0 + wall / 2.0),
                 ),
             )
             unite(enclosure, x_wall)
@@ -620,6 +721,52 @@ def build_back_accessory_layer(enclosure, rear_y: float):
         location=(0.0, cover_y, 0.0),
     )
 
+    if ENABLE_COVER_ALIGNMENT_SKIRT:
+        skirt_overlap = 0.20
+        skirt_depth = ACCESSORY_ALIGNMENT_SKIRT_DEPTH + skirt_overlap
+        skirt_y = cover_front_y - (
+            ACCESSORY_ALIGNMENT_SKIRT_DEPTH - skirt_overlap
+        ) / 2.0
+        skirt_inset = (
+            wall
+            + ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE
+            + ACCESSORY_ALIGNMENT_SKIRT_THICKNESS / 2.0
+        )
+        skirt_x = CASE_WIDTH / 2.0 - skirt_inset
+        skirt_z = CASE_HEIGHT / 2.0 - skirt_inset
+        vertical_length = (
+            CASE_HEIGHT
+            - 2 * (wall + ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE)
+        )
+        horizontal_length = (
+            CASE_WIDTH
+            - 2 * (wall + ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE)
+        )
+
+        for label, x in (("Left", -skirt_x), ("Right", skirt_x)):
+            rib = add_box(
+                f"Cover_{label}_Alignment_Skirt",
+                (
+                    ACCESSORY_ALIGNMENT_SKIRT_THICKNESS,
+                    skirt_depth,
+                    vertical_length,
+                ),
+                location=(x, skirt_y, 0.0),
+            )
+            unite(cover, rib)
+
+        for label, z in (("Bottom", -skirt_z), ("Top", skirt_z)):
+            rib = add_box(
+                f"Cover_{label}_Alignment_Skirt",
+                (
+                    horizontal_length,
+                    skirt_depth,
+                    ACCESSORY_ALIGNMENT_SKIRT_THICKNESS,
+                ),
+                location=(0.0, skirt_y, z),
+            )
+            unite(cover, rib)
+
     if ENABLE_FLUSH_SNAP_COVER:
         clip_overlap = 0.25
         hook_overlap = 0.20
@@ -717,12 +864,25 @@ def build_back_accessory_layer(enclosure, rear_y: float):
     cover["installation"] = "Press straight toward -Y until both clips snap"
     cover["release"] = "Press clips inward through the top and bottom slots"
     cover["flush_snap_clip_count"] = 2 if ENABLE_FLUSH_SNAP_COVER else 0
+    cover["alignment_skirt_enabled"] = ENABLE_COVER_ALIGNMENT_SKIRT
     cover["gps_opening"] = "None; rear panel remains intact"
     cover["speaker_vent_pattern"] = (
         f"{SPEAKER_VENT_COLUMNS} x {SPEAKER_VENT_ROWS}, "
         f"diameter {SPEAKER_VENT_HOLE_DIAMETER} mm"
     )
     return cover
+
+
+def clean_mesh(obj, merge_distance: float = 1e-5) -> None:
+    """Weld near-duplicate vertices and drop zero-area faces before export."""
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=merge_distance)
+    bmesh.ops.dissolve_degenerate(bm, dist=merge_distance, edges=bm.edges[:])
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
 
 
 def make_material():
@@ -733,19 +893,153 @@ def make_material():
     return material
 
 
+def make_dummy_material(name: str, color: tuple[float, float, float, float]):
+    material = bpy.data.materials.new(name=name)
+    material.diffuse_color = color
+    material.metallic = 0.0
+    material.roughness = 0.45
+    return material
+
+
+def build_dummy_esp32(front_y: float) -> list:
+    """Create a simplified, viewport-only ESP32 fit-check assembly."""
+    if not ENABLE_DUMMY_ESP32:
+        return []
+
+    collection_name = "FIT_CHECK_DUMMY_ESP32"
+    collection = bpy.data.collections.get(collection_name)
+    if collection is None:
+        collection = bpy.data.collections.new(collection_name)
+        bpy.context.scene.collection.children.link(collection)
+
+    glass_material = make_dummy_material(
+        "Dummy_Display_Glass_Material", (0.04, 0.20, 0.28, 1.0)
+    )
+    pcb_material = make_dummy_material(
+        "Dummy_PCB_Material", (0.02, 0.38, 0.12, 1.0)
+    )
+    keepout_material = make_dummy_material(
+        "Dummy_Component_Keepout_Material", (0.95, 0.30, 0.05, 1.0)
+    )
+    connector_material = make_dummy_material(
+        "Dummy_Connector_Material", (0.45, 0.48, 0.52, 1.0)
+    )
+
+    objects = []
+
+    def register(obj, material, wire: bool = False):
+        for source_collection in list(obj.users_collection):
+            source_collection.objects.unlink(obj)
+        collection.objects.link(obj)
+        obj.data.materials.append(material)
+        obj.hide_render = True
+        obj.show_in_front = True
+        obj.display_type = "WIRE" if wire else "SOLID"
+        obj["fit_check_only"] = True
+        obj["exclude_from_stl"] = True
+        objects.append(obj)
+        return obj
+
+    glass = add_y_cylinder(
+        "Dummy_Display_Glass_48_96mm",
+        DISPLAY_OUTER_DIAMETER,
+        DISPLAY_RECESS_DEPTH,
+        location=(0.0, front_y + DISPLAY_RECESS_DEPTH / 2.0, 0.0),
+    )
+    register(glass, glass_material)
+
+    carrier = add_box(
+        "Dummy_Display_Carrier_STEP_Envelope",
+        (DUMMY_CARRIER_WIDTH, DUMMY_CARRIER_DEPTH, DUMMY_CARRIER_HEIGHT),
+        location=(
+            DUMMY_CARRIER_CENTRE_X,
+            front_y
+            + DUMMY_CARRIER_FRONT_FROM_DISPLAY
+            + DUMMY_CARRIER_DEPTH / 2.0,
+            0.0,
+        ),
+    )
+    register(carrier, keepout_material, wire=True)
+
+    pcb_y = (
+        front_y
+        + DUMMY_PCB_FRONT_FROM_DISPLAY
+        + DUMMY_PCB_THICKNESS / 2.0
+    )
+    pcb = add_y_cylinder(
+        "Dummy_Circular_PCB_46mm",
+        BOARD_OUTER_DIAMETER,
+        DUMMY_PCB_THICKNESS,
+        location=(0.0, pcb_y, 0.0),
+    )
+    register(pcb, pcb_material)
+
+    usb = add_box(
+        "Dummy_USB_C_Receptacle",
+        (USB_C_RECEPTACLE_WIDTH, USB_C_RECEPTACLE_DEPTH, DUMMY_USB_C_HEIGHT),
+        location=(
+            DUMMY_USB_C_CENTRE_X,
+            front_y + DUMMY_USB_C_CENTRE_FROM_FRONT,
+            DUMMY_USB_C_CENTRE_Z,
+        ),
+    )
+    register(usb, connector_material)
+
+    for name, x, depth_from_front, z, width, depth, height in (
+        DUMMY_MAJOR_COMPONENT_BOXES
+    ):
+        component = add_box(
+            f"Dummy_{name}_STEP_Envelope",
+            (width, depth, height),
+            location=(
+                x,
+                front_y + depth_from_front,
+                z,
+            ),
+        )
+        register(component, connector_material)
+
+    boss_y = (
+        front_y
+        + DUMMY_SCREW_BOSS_FRONT_FROM_DISPLAY
+        + DUMMY_SCREW_BOSS_DEPTH / 2.0
+    )
+    for index, (drawing_x, z) in enumerate(SCREW_CENTRES, 1):
+        boss = add_y_cylinder(
+            f"Dummy_M2_Boss_{index}",
+            DUMMY_SCREW_BOSS_DIAMETER,
+            DUMMY_SCREW_BOSS_DEPTH,
+            location=(-drawing_x, boss_y, z),
+            vertices=VENT_CYLINDER_VERTICES,
+        )
+        register(boss, connector_material)
+
+    return objects
+
+
 def validate_parameters() -> None:
     cavity_width = CASE_WIDTH - 2 * SIDE_WALL
     cavity_height = CASE_HEIGHT - 2 * SIDE_WALL
     cavity_depth = CASE_DEPTH - FRONT_WALL - REAR_WALL
     usable_depth_from_front = CASE_DEPTH - REAR_WALL
-    required_depth_from_front = MODULE_MAX_DEPTH + DEVICE_REAR_CLEARANCE
+    required_depth_from_front = (
+        NON_CONNECTOR_HARDWARE_DEPTH
+        if ALLOW_REAR_CONNECTOR_PROTRUSION
+        else MODULE_MAX_DEPTH
+    ) + DEVICE_REAR_CLEARANCE
 
     if min(cavity_width, cavity_height, cavity_depth) <= 0:
         raise ValueError("Wall values leave no internal cavity.")
     if DISPLAY_POCKET_DIAMETER >= min(CASE_WIDTH, CASE_HEIGHT):
         raise ValueError("Display pocket is larger than the enclosure face.")
+    if not 0 <= DISPLAY_VERTICAL_RADIUS_COMPENSATION:
+        raise ValueError("Display vertical-radius compensation is invalid.")
+    if DISPLAY_POCKET_VERTICAL_DIAMETER >= CASE_HEIGHT:
+        raise ValueError("Compensated display pocket exceeds case height.")
     if DISPLAY_POCKET_DIAMETER <= BOARD_OPENING_DIAMETER:
         raise ValueError("Display pocket must be wider than the board opening.")
+    if DISPLAY_POCKET_VERTICAL_DIAMETER <= BOARD_OPENING_VERTICAL_DIAMETER:
+        raise ValueError("Vertical display support band has no width.")
     required_radial_space = BOARD_OUTER_DIAMETER + 2 * DEVICE_RADIAL_CLEARANCE
     if min(cavity_width, cavity_height) < required_radial_space:
         raise ValueError(
@@ -755,6 +1049,12 @@ def validate_parameters() -> None:
         CASE_WIDTH, CASE_HEIGHT
     ):
         raise ValueError("Circular display support is larger than the enclosure.")
+    if (
+        DISPLAY_POCKET_VERTICAL_DIAMETER
+        + 2 * DISPLAY_SUPPORT_WALL_THICKNESS
+        >= CASE_HEIGHT
+    ):
+        raise ValueError("Compensated display support exceeds case height.")
     if ENABLE_DISPLAY_CABLE_RELIEFS and not (
         0 < DISPLAY_CABLE_RELIEF_WIDTH < DISPLAY_POCKET_DIAMETER
     ):
@@ -792,6 +1092,28 @@ def validate_parameters() -> None:
         raise ValueError("USB-C guide tunnel extends beyond the rear surface.")
     if USB_C_TUNNEL_LENGTH <= SIDE_WALL:
         raise ValueError("USB-C guide tunnel must extend beyond the side wall.")
+    if ENABLE_DUMMY_ESP32 and (
+        DUMMY_PCB_THICKNESS <= 0
+        or DUMMY_PCB_FRONT_FROM_DISPLAY + DUMMY_PCB_THICKNESS
+        > MODULE_MAX_DEPTH + DIMENSION_EPSILON
+        or DUMMY_CARRIER_FRONT_FROM_DISPLAY + DUMMY_CARRIER_DEPTH
+        > DUMMY_PCB_FRONT_FROM_DISPLAY + DIMENSION_EPSILON
+        or min(DUMMY_CARRIER_WIDTH, DUMMY_CARRIER_HEIGHT) <= 0
+        or DUMMY_USB_C_HEIGHT <= 0
+        or DUMMY_SCREW_BOSS_DIAMETER <= SCREW_HOLE_DIAMETER
+        or DUMMY_SCREW_BOSS_DEPTH <= 0
+        or DUMMY_SCREW_BOSS_FRONT_FROM_DISPLAY
+        + DUMMY_SCREW_BOSS_DEPTH
+        > MODULE_MAX_DEPTH + DIMENSION_EPSILON
+        or any(
+            min(width, depth, height) <= 0
+            or depth_from_front + depth / 2.0
+            > MODULE_MAX_DEPTH + DIMENSION_EPSILON
+            for _, _, depth_from_front, _, width, depth, height
+            in DUMMY_MAJOR_COMPONENT_BOXES
+        )
+    ):
+        raise ValueError("Dummy ESP32 fit-check dimensions are invalid.")
     if ENABLE_BASE_AIR_VENTS and (
         BASE_AIR_VENT_DIAMETER <= 0
         or BASE_AIR_VENT_PITCH <= BASE_AIR_VENT_DIAMETER
@@ -816,6 +1138,16 @@ def validate_parameters() -> None:
             raise ValueError("Accessory depth reduction is invalid.")
         if ACCESSORY_COVER_THICKNESS <= 0:
             raise ValueError("Accessory cover thickness is invalid.")
+        if ENABLE_COVER_ALIGNMENT_SKIRT and (
+            ACCESSORY_ALIGNMENT_SKIRT_DEPTH <= 0
+            or ACCESSORY_ALIGNMENT_SKIRT_DEPTH >= ACCESSORY_INTERNAL_DEPTH
+            or ACCESSORY_ALIGNMENT_SKIRT_THICKNESS <= 0
+            or ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE < 0
+            or ACCESSORY_ALIGNMENT_SKIRT_THICKNESS
+            + ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE
+            >= ACCESSORY_WALL_THICKNESS
+        ):
+            raise ValueError("Cover alignment-skirt dimensions are invalid.")
         if ENABLE_FLUSH_SNAP_COVER and (
             ACCESSORY_SNAP_CLIP_LENGTH <= 0
             or ACCESSORY_SNAP_CLIP_LENGTH >= ACCESSORY_INTERNAL_DEPTH
@@ -937,6 +1269,9 @@ def build_enclosure():
     support_outer_diameter = (
         DISPLAY_POCKET_DIAMETER + 2 * DISPLAY_SUPPORT_WALL_THICKNESS
     )
+    support_outer_vertical_diameter = (
+        support_outer_diameter + 2 * DISPLAY_VERTICAL_RADIUS_COMPENSATION
+    )
     # The sleeve starts inside the front wall, not on its outer face: a
     # coplanar front face makes the union non-manifold. The final pocket cut
     # below opens the front surface.
@@ -944,15 +1279,17 @@ def build_enclosure():
     sleeve_end_y = front_y + DISPLAY_RECESS_DEPTH + DISPLAY_PLATFORM_THICKNESS
     sleeve_depth = sleeve_end_y - sleeve_start_y
     sleeve_y = (sleeve_start_y + sleeve_end_y) / 2.0
-    sleeve = add_y_cylinder(
+    sleeve = add_y_ellipse(
         "Display_Recess_Sleeve",
         support_outer_diameter,
+        support_outer_vertical_diameter,
         sleeve_depth,
         location=(0.0, sleeve_y, 0.0),
     )
-    sleeve_void = add_y_cylinder(
+    sleeve_void = add_y_ellipse(
         "Display_Recess_Interior",
         DISPLAY_POCKET_DIAMETER,
+        DISPLAY_POCKET_VERTICAL_DIAMETER,
         sleeve_depth + 2 * BOOLEAN_MARGIN,
         location=(0.0, sleeve_y, 0.0),
     )
@@ -964,19 +1301,22 @@ def build_enclosure():
         sleeve_depth + 2 * BOOLEAN_MARGIN,
         support_outer_diameter,
         BOARD_OPENING_DIAMETER,
+        DISPLAY_VERTICAL_RADIUS_COMPENSATION,
     )
 
     platform_front_y = front_y + DISPLAY_RECESS_DEPTH
     platform_y = platform_front_y + DISPLAY_PLATFORM_THICKNESS / 2.0
-    platform = add_y_cylinder(
+    platform = add_y_ellipse(
         "Display_Annular_Support",
         support_outer_diameter,
+        support_outer_vertical_diameter,
         DISPLAY_PLATFORM_THICKNESS,
         location=(0.0, platform_y, 0.0),
     )
-    board_cutter = add_y_cylinder(
+    board_cutter = add_y_ellipse(
         "PCB_Opening_In_Platform",
         BOARD_OPENING_DIAMETER,
+        BOARD_OPENING_VERTICAL_DIAMETER,
         DISPLAY_PLATFORM_THICKNESS + 2 * BOOLEAN_MARGIN,
         location=(0.0, platform_y, 0.0),
     )
@@ -988,6 +1328,7 @@ def build_enclosure():
         DISPLAY_PLATFORM_THICKNESS + 2 * BOOLEAN_MARGIN,
         support_outer_diameter,
         BOARD_OPENING_DIAMETER,
+        DISPLAY_VERTICAL_RADIUS_COMPENSATION,
     )
     # Build one watertight display cup before touching the complex enclosure
     # mesh. This prevents slicers from dropping the ring as a separate shell.
@@ -999,17 +1340,19 @@ def build_enclosure():
     # slicers interpret as a solid top skin.
     pocket_cut_start = front_y - BOOLEAN_MARGIN
     pocket_cut_end = platform_front_y
-    final_pocket_cutter = add_y_cylinder(
+    final_pocket_cutter = add_y_ellipse(
         "Final_Display_Pocket_Opening",
         DISPLAY_POCKET_DIAMETER,
+        DISPLAY_POCKET_VERTICAL_DIAMETER,
         pocket_cut_end - pocket_cut_start,
         location=(0.0, (pocket_cut_start + pocket_cut_end) / 2.0, 0.0),
     )
     subtract(enclosure, final_pocket_cutter)
 
-    final_board_cutter = add_y_cylinder(
+    final_board_cutter = add_y_ellipse(
         "Final_PCB_Through_Opening",
         BOARD_OPENING_DIAMETER,
+        BOARD_OPENING_VERTICAL_DIAMETER,
         DISPLAY_PLATFORM_THICKNESS + 2 * BOOLEAN_MARGIN,
         location=(0.0, platform_y, 0.0),
     )
@@ -1208,17 +1551,22 @@ def build_enclosure():
             subtract(enclosure, mic_port)
 
     cover = build_back_accessory_layer(enclosure, rear_y)
+    dummy_objects = build_dummy_esp32(front_y)
 
     # Optional cut-edge softening. Leave this at zero for a full-width, flat
     # display seating shoulder; external case corners were already rounded.
     if EDGE_BEVEL > 0:
         apply_bevel(enclosure, EDGE_BEVEL, segments=2)
+    clean_mesh(enclosure)
+    if cover is not None:
+        clean_mesh(cover)
     material = make_material()
     enclosure.data.materials.append(material)
     if cover is not None:
         cover.data.materials.append(material)
 
     # Improve viewport presentation without affecting exported geometry.
+    bpy.ops.object.select_all(action="DESELECT")
     enclosure.select_set(True)
     bpy.context.view_layer.objects.active = enclosure
     if hasattr(bpy.ops.object, "shade_smooth_by_angle"):
@@ -1228,7 +1576,16 @@ def build_enclosure():
         bpy.ops.object.shade_smooth()
     enclosure["dimensions_mm"] = f"{CASE_WIDTH} x {CASE_HEIGHT} x {CASE_DEPTH}"
     enclosure["display_pocket_diameter_mm"] = DISPLAY_POCKET_DIAMETER
+    enclosure["display_pocket_vertical_diameter_mm"] = (
+        DISPLAY_POCKET_VERTICAL_DIAMETER
+    )
     enclosure["board_opening_diameter_mm"] = BOARD_OPENING_DIAMETER
+    enclosure["board_opening_vertical_diameter_mm"] = (
+        BOARD_OPENING_VERTICAL_DIAMETER
+    )
+    enclosure["display_vertical_radius_compensation_mm"] = (
+        DISPLAY_VERTICAL_RADIUS_COMPENSATION
+    )
     enclosure["display_recess_depth_mm"] = DISPLAY_RECESS_DEPTH
     enclosure["display_platform_thickness_mm"] = DISPLAY_PLATFORM_THICKNESS
     enclosure["display_support_wall_thickness_mm"] = (
@@ -1274,6 +1631,8 @@ def build_enclosure():
             f"length {USB_C_TUNNEL_LENGTH}, wall {USB_C_TUNNEL_WALL}"
         )
     enclosure["back_accessory_layer_enabled"] = ENABLE_BACK_ACCESSORY_LAYER
+    enclosure["dummy_esp32_enabled"] = ENABLE_DUMMY_ESP32
+    enclosure["dummy_esp32_object_count"] = len(dummy_objects)
     enclosure["rear_cover_mechanism"] = (
         "Flush internal top-and-bottom two-clip snap fit"
     )
@@ -1341,9 +1700,11 @@ def main() -> None:
         f"{CASE_WIDTH:.1f} x {CASE_HEIGHT:.1f} x {CASE_DEPTH:.1f} mm, "
         f"hollow {ENCLOSURE_THICKNESS:.2f} mm shell, "
         f"internal depth {internal_depth:.1f} mm, "
-        f"display pocket Ø{DISPLAY_POCKET_DIAMETER:.2f} x "
-        f"{DISPLAY_RECESS_DEPTH:.2f} mm, "
-        f"board opening Ø{BOARD_OPENING_DIAMETER:.2f} mm."
+        f"display pocket {DISPLAY_POCKET_DIAMETER:.2f} x "
+        f"{DISPLAY_POCKET_VERTICAL_DIAMETER:.2f} mm, "
+        f"recess {DISPLAY_RECESS_DEPTH:.2f} mm, "
+        f"board opening {BOARD_OPENING_DIAMETER:.2f} x "
+        f"{BOARD_OPENING_VERTICAL_DIAMETER:.2f} mm."
     )
     if args.export:
         blend_path, stl_path, cover_stl_path = export_outputs(
