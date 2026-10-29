@@ -1,7 +1,7 @@
 # ESP32-S3 Touch AMOLED 1.75 enclosure
 
-The enclosure is a parameterized, single-piece square shell generated in  
-Blender. It contains:
+The enclosure is a parameterized square shell plus a separate sliding rear
+cover generated in Blender. It contains:
 
 -   a fully hollow 1.20 mm shell sized for three extrusion lines with a
     standard 0.40 mm nozzle;
@@ -9,19 +9,33 @@ Blender. It contains:
     PCB opening in a concentric annular support ring. A thin circular sleeve
     connects the ring directly to the front shell, supporting the display
     flush with the front surface;
--   10 mm-wide top and bottom relief windows through the circular seat for the
-    display cables;
+-   10 mm-wide top, bottom, left, and right relief windows through the circular
+    seat for display cables;
 -   three rear M2 access holes;
+-   three recessed screw cups that bridge the rear-wall gap to the hardware's
+    M2 × 3.5 mm threaded standoffs;
 -   rear openings for the 8-pin interface, speaker connector, and battery  
     connector; and
--   two rear microphone holes and a bottom-side rounded USB-C access opening
+-   two bottom microphone holes flanking a rounded USB-C access opening
     with an optional internal guide tunnel;
--   an independently switchable centered rear support-access hole.
+-   an independently switchable centered rear support-access hole, disabled by
+    default so the accessory holders have a continuous mounting surface;
+-   an optional rear accessory chamber with L-shaped corner holders for a
+    22 × 53 mm battery, 30 × 30 mm GPS module, and a speaker rotated to
+    30 × 20 mm; and
+-   a top-loading sliding cover captured by paired side rails and a bottom
+    stop, with a flexible snap-flap lock; and
+-   a staggered circular speaker grille aligned with the speaker holder.
+-   Mac-Pro-inspired staggered circular vent lattices through both base side
+    walls and the base top wall, using support-friendly 2 mm holes;
+-   one microphone hole on each side of USB-C through the base bottom; and
+-   matching seven-hole honeycomb microphone/air rosettes through the
+    accessory-layer bottom.
 
-The supplied mechanical drawings are the dimensional reference. The microphone  
-acoustic-port centres are not dimensioned on those drawings, so their current  
-positions are estimates scaled from the rear view. They are clearly identified  
-near the top of the script for adjustment after a test fit.
+The supplied mechanical drawings are the dimensional reference. The microphone
+acoustic-port centres are not dimensioned on those drawings, so their bottom
+positions beside USB-C are estimates scaled from the rear view. They are clearly
+identified near the top of the script for adjustment after a test fit.
 
 ## Generate in Blender
 
@@ -37,7 +51,8 @@ For command-line generation and automatic STL/Blend export:
 blender --background --python blender_enclosure.py -- --export
 ```
 
-This writes both files to `output/`. To select another directory:
+This writes the Blend file, enclosure STL, and separate sliding-cover STL to
+`output/`. To select another directory:
 
 ```sh
 blender --background --python blender_enclosure.py -- \
@@ -67,24 +82,48 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     concentric display passages are re-cut after the union to prevent slicer
     mesh repair from closing the opening with a solid top skin.
 -   `ENABLE_DISPLAY_CABLE_RELIEFS` and `DISPLAY_CABLE_RELIEF_WIDTH`: control
-    the top and bottom cable windows; their default width is 10.0 mm.
+    all four cable windows; their default width is 10.0 mm.
 -   `SCREW_CENTRES`: the three M2 locations from the mechanical drawing.
+-   `ENABLE_RECESSED_SCREW_WELLS` and the `SCREW_WELL_*` parameters: control
+    the three guided screw recesses and their bottom shoulders.
 -   `PIN8_OPENING`, `SPEAKER_OPENING`, `BATTERY_OPENING`: rear connector  
     openings as `(centre_x, centre_z, width, height)`.
--   `MIC_CENTRES`: estimated rear acoustic-port centres.
+-   `BASE_MIC_CENTRES_X`: estimated bottom acoustic-port centres beside USB-C.
 -   `USB_C_OPENING_WIDTH`, `USB_C_OPENING_DEPTH`, and
     `USB_C_CENTRE_FROM_FRONT`: STEP-derived bottom-side USB-C geometry. The
-    receptacle envelope is 9.58 × 4.16 mm; the cutout is 10.08 × 4.66 mm after
-    adding 0.50 mm total clearance, centered 8.07 mm behind the display. The
-    cutout uses the connector's rounded capsule profile rather than a box.
+    receptacle envelope is 9.58 × 4.16 mm. The cutout is now 11.58 × 6.16 mm,
+    providing 1.0 mm clearance on every side, and its center is shifted 2.0 mm
+    toward the rear/base to 10.07 mm behind the display. The cutout uses the
+    connector's rounded capsule profile rather than a box.
 -   `USB_C_TUNNEL_LENGTH` and `USB_C_TUNNEL_WALL`: internal guide sleeve
     length and wall thickness.
--   `ENABLE_USB_C_TUNNEL`: currently `False`, leaving only the STEP-derived
-    rounded USB-C cutout.
+-   `ENABLE_USB_C_TUNNEL`: currently `True`, adding a 6.2 mm-long rounded guide
+    tunnel from the shell exterior to the STEP-aligned USB-C receptacle.
 -   `ENABLE_REAR_SUPPORT_ACCESS_HOLE`: enables or disables the additional
-    centered rear opening without changing any other hole.
+    centered rear opening without changing any other hole. It is currently
+    `False` for a solid accessory mounting floor.
 -   `REAR_SUPPORT_ACCESS_HOLE_DIAMETER`: rear support-access diameter,
     defaulting to 28.0 mm to remain clear of the connector openings.
+-   `ENABLE_BACK_ACCESSORY_LAYER`: enables the complete rear component chamber
+    and separate sliding cover.
+-   `ACCESSORY_MAX_HEIGHT` and `ACCESSORY_DEPTH_CLEARANCE`: define the 12.8 mm
+    internal chamber depth for modules up to 12 mm tall.
+-   `MODULE_HOLDER_CLEARANCE`, `MODULE_HOLDER_HEIGHT`, and
+    `MODULE_HOLDER_ARM_LENGTH`: control the open L-shaped corner retainers.
+-   `ACCESSORY_COVER_THICKNESS`, `ACCESSORY_COVER_CLEARANCE`, and
+    `ACCESSORY_RAIL_PROTRUSION`: control the top-loading sliding-cover fit.
+-   `ENABLE_ACCESSORY_COVER_LOCK` and the `ACCESSORY_LOCK_*` parameters:
+    control the flexible center flap, snap hook, and full-width catch bar.
+-   `ENABLE_SPEAKER_VENTS` and the `SPEAKER_VENT_*` parameters: control the
+    rear-cover speaker grille pattern.
+-   `ENABLE_BASE_AIR_VENTS`, `BASE_AIR_VENT_PITCH`, and the related row/column
+    parameters: control the centered staggered vent lattices on the original
+    display enclosure.
+-   `ENABLE_BASE_MIC_PORTS` and the `BASE_MIC_*` parameters: control the two
+    bottom microphone holes beside USB-C.
+-   `ENABLE_ACCESSORY_BOTTOM_MIC_VENTS` and the
+    `ACCESSORY_BOTTOM_MIC_VENT_*` parameters: control the matching holes in the
+    accessory-layer bottom wall.
 
 Rear feature coordinates match the mechanical drawing as viewed from outside
 the rear: positive drawing X is right and positive Z is up. The script mirrors

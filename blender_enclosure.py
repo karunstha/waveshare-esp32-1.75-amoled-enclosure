@@ -62,8 +62,8 @@ BOARD_DIAMETRAL_CLEARANCE = 0.50
 DISPLAY_POCKET_DIAMETER = DISPLAY_OUTER_DIAMETER + DISPLAY_DIAMETRAL_CLEARANCE
 BOARD_OPENING_DIAMETER = BOARD_OUTER_DIAMETER + BOARD_DIAMETRAL_CLEARANCE
 
-# Cable reliefs interrupt the circular display seat at top and bottom. Width is
-# tangential along X; each notch runs radially across the full support band.
+# Cable reliefs interrupt the circular display seat at all four cardinal sides.
+# Each 10 mm notch runs radially across the full support band.
 ENABLE_DISPLAY_CABLE_RELIEFS = True
 DISPLAY_CABLE_RELIEF_WIDTH = 10.0
 
@@ -77,41 +77,111 @@ SCREW_CENTRES = (
     (+20.50, 0.00),
 )
 
+# Recessed screw cups bridge the air gap from the rear wall to the three
+# M2 x 3.5 mm threaded standoffs. The drawing places the standoff tips 10.40 mm
+# behind the flush display surface.
+ENABLE_RECESSED_SCREW_WELLS = True
+SCREW_MOUNT_DEPTH_FROM_FRONT = 10.40
+SCREW_WELL_INNER_DIAMETER = 5.00
+SCREW_WELL_WALL_THICKNESS = ENCLOSURE_THICKNESS
+SCREW_WELL_FLOOR_THICKNESS = ENCLOSURE_THICKNESS
+
 # Rear connector openings. Tuple values are (centre_x, centre_z, width, height).
 # Add tolerance here instead of editing boolean operations below.
 PIN8_OPENING = (-18.30, 0.00, 5.20, 21.00)
 SPEAKER_OPENING = (+17.50, +7.50, 6.50, 6.00)
 BATTERY_OPENING = (+17.50, -7.50, 6.50, 6.00)
 
-# The microphones are the two 2.80 mm components immediately to either side
-# of USB-C at the bottom of the rear view. Their acoustic port centres are not
-# explicitly dimensioned, so these centres are scaled from the drawing.
-MIC_HOLE_DIAMETER = 1.60
-MIC_CENTRES = (
-    (-11.5, -16.5),
-    (+11.5, -16.5),
-)
-
 # Optional rear access hole for reaching/removing 3D-print support material.
 # Ø28 mm stays centered and clear of the existing rear connector cutouts.
-ENABLE_REAR_SUPPORT_ACCESS_HOLE = True
+ENABLE_REAR_SUPPORT_ACCESS_HOLE = False
 REAR_SUPPORT_ACCESS_HOLE_DIAMETER = 28.0
+
+# Optional rear accessory chamber. The layout packs the battery on the left,
+# GPS at upper-right, and the speaker (rotated 30 x 20) at lower-right.
+ENABLE_BACK_ACCESSORY_LAYER = True
+ACCESSORY_MAX_HEIGHT = 12.0
+ACCESSORY_DEPTH_CLEARANCE = 0.80
+ACCESSORY_INTERNAL_DEPTH = ACCESSORY_MAX_HEIGHT + ACCESSORY_DEPTH_CLEARANCE
+ACCESSORY_WALL_THICKNESS = ENCLOSURE_THICKNESS
+MODULE_HOLDER_CLEARANCE = 0.60
+MODULE_HOLDER_HEIGHT = 3.0
+MODULE_HOLDER_ARM_LENGTH = 5.0
+
+# Top-loading sliding cover and guide rails.
+ACCESSORY_COVER_THICKNESS = ENCLOSURE_THICKNESS
+ACCESSORY_COVER_CLEARANCE = 0.35
+ACCESSORY_RAIL_PROTRUSION = 2.0
+ACCESSORY_COVER_STOP_HEIGHT = 2.0
+ACCESSORY_COVER_PULL_TAB_WIDTH = 12.0
+ACCESSORY_COVER_PULL_TAB_HEIGHT = 2.0
+
+# Flexible snap-flap lock integrated into the top center of the sliding cover.
+ENABLE_ACCESSORY_COVER_LOCK = True
+ACCESSORY_LOCK_FLAP_WIDTH = 12.0
+ACCESSORY_LOCK_FLAP_LENGTH = 12.0
+ACCESSORY_LOCK_SLOT_WIDTH = 1.0
+ACCESSORY_LOCK_HOOK_DEPTH = 1.20
+ACCESSORY_LOCK_HOOK_HEIGHT = 1.50
+# Embed the snap hook into the cover instead of merely touching its surface.
+# A volumetric overlap is essential for a watertight union in slicers.
+ACCESSORY_LOCK_HOOK_EMBED = 0.60
+ACCESSORY_LOCK_CATCH_HEIGHT = 1.20
+ACCESSORY_LOCK_VERTICAL_CLEARANCE = 0.20
+
+# Speaker grille through the sliding rear cover.
+ENABLE_SPEAKER_VENTS = True
+SPEAKER_VENT_HOLE_DIAMETER = 2.00
+SPEAKER_VENT_COLUMNS = 7
+SPEAKER_VENT_ROWS = 5
+SPEAKER_VENT_PITCH = 3.20
+
+# Base enclosure airflow: circular holes on a staggered triangular lattice.
+# The clean border around each perforated panel keeps the Mac-Pro-style pattern
+# deliberate and leaves enough material at the wall edges.
+ENABLE_BASE_AIR_VENTS = True
+BASE_AIR_VENT_DIAMETER = 2.00
+BASE_AIR_VENT_PITCH = 3.40
+BASE_SIDE_VENT_COLUMNS = 4
+BASE_SIDE_VENT_ROWS = 15
+BASE_TOP_VENT_COLUMNS = 13
+BASE_TOP_VENT_ROWS = 4
+
+# One bottom acoustic opening for each microphone, flanking USB-C. These are
+# drawing-view X coordinates; unlike rear-face openings, bottom openings do not
+# need the rear-view X-axis mirror.
+ENABLE_BASE_MIC_PORTS = True
+BASE_MIC_PORT_DIAMETER = 2.0
+BASE_MIC_CENTRES_X = (-11.5, +11.5)
+
+# Matching seven-hole honeycomb rosettes in the bottom of the rear accessory
+# layer near its front edge. The two actual base mic ports remain single holes.
+ENABLE_ACCESSORY_BOTTOM_MIC_VENTS = True
+ACCESSORY_BOTTOM_MIC_VENT_DIAMETER = 1.60
+ACCESSORY_BOTTOM_MIC_VENT_PITCH = 2.70
+# Positioned beyond the 3 mm holder depth so the vents do not weaken a clip.
+ACCESSORY_BOTTOM_MIC_VENT_OFFSET_FROM_FRONT = 6.5
 
 # USB-C receptacle envelope measured from H1_ASM in the supplied STEP model.
 # Width is tangential along X; depth is front-to-rear along Y. A 0.50 mm total
-# clearance is added to both dimensions for fit and print tolerance.
+# clearance is added around the connector for the plug and moulded head.
 USB_C_RECEPTACLE_WIDTH = 9.58
 USB_C_RECEPTACLE_DEPTH = 4.16
-USB_C_CUTOUT_CLEARANCE = 0.50
+# 1.0 mm on every side means 2.0 mm added to each overall dimension.
+USB_C_CUTOUT_CLEARANCE = 2.00
 USB_C_OPENING_WIDTH = USB_C_RECEPTACLE_WIDTH + USB_C_CUTOUT_CLEARANCE
 USB_C_OPENING_DEPTH = USB_C_RECEPTACLE_DEPTH + USB_C_CUTOUT_CLEARANCE
-USB_C_CENTRE_FROM_FRONT = 8.07
-ENABLE_USB_C_TUNNEL = False
+# Shifted 2.0 mm farther toward the rear/base from the STEP-derived 8.07 mm.
+USB_C_CENTRE_FROM_FRONT = 10.07
+ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
 
 # Mesh quality
 CYLINDER_VERTICES = 128
+# Tiny printed vents do not benefit from 128-sided cutters. At Ø2 mm, 32 sides
+# are visually circular while dramatically reducing Boolean workload.
+VENT_CYLINDER_VERTICES = 32
 BOOLEAN_MARGIN = 1.0
 
 
@@ -124,11 +194,59 @@ class RearRectangle:
     height: float
 
 
+@dataclass(frozen=True)
+class AccessoryModule:
+    name: str
+    x: float
+    z: float
+    width: float
+    height: float
+
+
 REAR_RECTANGLES = (
     RearRectangle("8_Pin_Interface", *PIN8_OPENING),
     RearRectangle("Speaker_Pins", *SPEAKER_OPENING),
     RearRectangle("Battery_Pins", *BATTERY_OPENING),
 )
+
+
+ACCESSORY_MODULES = (
+    # World X is mirrored when viewed from outside the rear (+Y) face.
+    AccessoryModule("Battery_22x53", +17.0, 0.0, 22.0, 53.0),
+    AccessoryModule("GPS_30x30", -13.0, +13.0, 30.0, 30.0),
+    AccessoryModule("Speaker_30x20", -13.0, -17.0, 30.0, 20.0),
+)
+
+
+def staggered_lattice_offsets(
+    columns: int,
+    rows: int,
+    pitch: float,
+) -> list[tuple[float, float]]:
+    """Return a centered triangular lattice with alternating shorter rows."""
+    offsets: list[tuple[float, float]] = []
+    row_pitch = pitch * math.sqrt(3.0) / 2.0
+    row_origin = (rows - 1) / 2.0
+    for row in range(rows):
+        row_columns = columns if row % 2 == 0 else max(1, columns - 1)
+        column_origin = (row_columns - 1) / 2.0
+        for column in range(row_columns):
+            offsets.append(
+                (
+                    (column - column_origin) * pitch,
+                    (row - row_origin) * row_pitch,
+                )
+            )
+    return offsets
+
+
+def honeycomb_rosette_offsets(pitch: float) -> list[tuple[float, float]]:
+    """Return one center and six evenly spaced surrounding hole centres."""
+    offsets = [(0.0, 0.0)]
+    for index in range(6):
+        angle = math.radians(index * 60.0)
+        offsets.append((pitch * math.cos(angle), pitch * math.sin(angle)))
+    return offsets
 
 
 def parse_args() -> argparse.Namespace:
@@ -178,14 +296,35 @@ def add_y_cylinder(
     diameter: float,
     depth: float,
     location=(0, 0, 0),
+    vertices: int = CYLINDER_VERTICES,
 ):
     """Add a cylinder whose axis follows Y (front-to-rear)."""
     bpy.ops.mesh.primitive_cylinder_add(
-        vertices=CYLINDER_VERTICES,
+        vertices=vertices,
         radius=diameter / 2.0,
         depth=depth,
         location=location,
         rotation=(math.radians(90.0), 0.0, 0.0),
+    )
+    obj = bpy.context.object
+    obj.name = name
+    return obj
+
+
+def add_x_cylinder(
+    name: str,
+    diameter: float,
+    depth: float,
+    location=(0, 0, 0),
+    vertices: int = CYLINDER_VERTICES,
+):
+    """Add a cylinder whose axis follows X."""
+    bpy.ops.mesh.primitive_cylinder_add(
+        vertices=vertices,
+        radius=diameter / 2.0,
+        depth=depth,
+        location=location,
+        rotation=(0.0, math.radians(90.0), 0.0),
     )
     obj = bpy.context.object
     obj.name = name
@@ -197,10 +336,11 @@ def add_z_cylinder(
     diameter: float,
     depth: float,
     location=(0, 0, 0),
+    vertices: int = CYLINDER_VERTICES,
 ):
     """Add a cylinder whose axis follows Z."""
     bpy.ops.mesh.primitive_cylinder_add(
-        vertices=CYLINDER_VERTICES,
+        vertices=vertices,
         radius=diameter / 2.0,
         depth=depth,
         location=location,
@@ -219,14 +359,28 @@ def apply_bevel(obj, width: float, segments: int = 3) -> None:
     bpy.ops.object.modifier_apply(modifier=modifier.name)
 
 
-def subtract(target, cutter) -> None:
+def subtract(target, cutter, solver: str = "EXACT") -> None:
     modifier = target.modifiers.new(name=f"Cut_{cutter.name}", type="BOOLEAN")
     modifier.operation = "DIFFERENCE"
-    modifier.solver = "EXACT"
+    modifier.solver = solver
     modifier.object = cutter
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier=modifier.name)
     bpy.data.objects.remove(cutter, do_unlink=True)
+
+
+def subtract_many(target, cutters: list, name: str) -> None:
+    """Join simple vent cutters and apply one fast Boolean operation."""
+    if not cutters:
+        return
+    bpy.ops.object.select_all(action="DESELECT")
+    for cutter in cutters:
+        cutter.select_set(True)
+    combined = cutters[0]
+    bpy.context.view_layer.objects.active = combined
+    bpy.ops.object.join()
+    combined.name = name
+    subtract(target, combined, solver="FAST")
 
 
 def unite(target, addition) -> None:
@@ -277,7 +431,7 @@ def cut_display_cable_reliefs(
     outer_diameter: float,
     inner_diameter: float,
 ) -> None:
-    """Remove 10 mm top/bottom windows across the circular support band."""
+    """Remove top, bottom, left, and right windows across the support band."""
     if not ENABLE_DISPLAY_CABLE_RELIEFS:
         return
     radial_band = (outer_diameter - inner_diameter) / 2.0
@@ -290,6 +444,289 @@ def cut_display_cable_reliefs(
             location=(0.0, y, direction * relief_center_z),
         )
         subtract(target, cutter)
+
+    for label, direction in (("Left", -1.0), ("Right", 1.0)):
+        cutter = add_box(
+            f"{name_prefix}_{label}_Cable_Relief",
+            (relief_height, cut_depth, DISPLAY_CABLE_RELIEF_WIDTH),
+            location=(direction * relief_center_z, y, 0.0),
+        )
+        subtract(target, cutter)
+
+
+def add_module_corner_holders(
+    enclosure,
+    module: AccessoryModule,
+    rear_y: float,
+) -> None:
+    """Add four open L-shaped corner retainers around one accessory module."""
+    wall = ACCESSORY_WALL_THICKNESS
+    overlap = min(0.20, wall / 2.0)
+    holder_depth = MODULE_HOLDER_HEIGHT + overlap
+    holder_y = rear_y - overlap + holder_depth / 2.0
+    half_w = (module.width + MODULE_HOLDER_CLEARANCE) / 2.0
+    half_h = (module.height + MODULE_HOLDER_CLEARANCE) / 2.0
+    arm = min(MODULE_HOLDER_ARM_LENGTH, module.width / 2.0, module.height / 2.0)
+
+    for x_sign in (-1.0, 1.0):
+        for z_sign in (-1.0, 1.0):
+            x_wall = add_box(
+                f"{module.name}_Corner_X_{int(x_sign)}_{int(z_sign)}",
+                (wall, holder_depth, arm),
+                location=(
+                    module.x + x_sign * (half_w + wall / 2.0),
+                    holder_y,
+                    module.z + z_sign * (half_h - arm / 2.0),
+                ),
+            )
+            unite(enclosure, x_wall)
+
+            z_wall = add_box(
+                f"{module.name}_Corner_Z_{int(x_sign)}_{int(z_sign)}",
+                (arm, holder_depth, wall),
+                location=(
+                    module.x + x_sign * (half_w - arm / 2.0),
+                    holder_y,
+                    module.z + z_sign * (half_h + wall / 2.0),
+                ),
+            )
+            unite(enclosure, z_wall)
+
+
+def build_back_accessory_layer(enclosure, rear_y: float):
+    """Add the rear component tray and return its separate sliding cover."""
+    if not ENABLE_BACK_ACCESSORY_LAYER:
+        return None
+
+    wall = ACCESSORY_WALL_THICKNESS
+    overlap = min(0.20, wall / 2.0)
+    cover_front_y = rear_y + ACCESSORY_INTERNAL_DEPTH
+    cover_y = cover_front_y + ACCESSORY_COVER_THICKNESS / 2.0
+    groove_half_depth = (
+        ACCESSORY_COVER_THICKNESS / 2.0 + ACCESSORY_COVER_CLEARANCE
+    )
+    inner_rail_y = cover_y - groove_half_depth - wall / 2.0
+    outer_rail_y = cover_y + groove_half_depth + wall / 2.0
+    outer_end_y = outer_rail_y + wall / 2.0
+    wall_start_y = rear_y - overlap
+    extension_depth = outer_end_y - wall_start_y
+    extension_y = (wall_start_y + outer_end_y) / 2.0
+
+    # Left, right, and bottom walls extend the existing enclosure rearward.
+    for label, x in (("Left", -CASE_WIDTH / 2.0 + wall / 2.0),
+                     ("Right", CASE_WIDTH / 2.0 - wall / 2.0)):
+        side = add_box(
+            f"Accessory_{label}_Wall",
+            (wall, extension_depth, CASE_HEIGHT),
+            location=(x, extension_y, 0.0),
+        )
+        unite(enclosure, side)
+
+    bottom = add_box(
+        "Accessory_Bottom_Wall",
+        (CASE_WIDTH - 2 * wall, extension_depth, wall),
+        location=(0.0, extension_y, -CASE_HEIGHT / 2.0 + wall / 2.0),
+    )
+    unite(enclosure, bottom)
+
+    if ENABLE_ACCESSORY_BOTTOM_MIC_VENTS:
+        vent_y = rear_y + ACCESSORY_BOTTOM_MIC_VENT_OFFSET_FROM_FRONT
+        mic_vent_cutters = []
+        for cluster_index, cluster_x in enumerate(BASE_MIC_CENTRES_X):
+            for index, (x_offset, y_offset) in enumerate(
+                honeycomb_rosette_offsets(ACCESSORY_BOTTOM_MIC_VENT_PITCH)
+            ):
+                mic_vent_cutters.append(
+                    add_z_cylinder(
+                        f"Accessory_Bottom_Mic_Vent_{cluster_index}_{index}",
+                        ACCESSORY_BOTTOM_MIC_VENT_DIAMETER,
+                        wall + 2 * BOOLEAN_MARGIN,
+                        location=(
+                            cluster_x + x_offset,
+                            vent_y + y_offset,
+                            -CASE_HEIGHT / 2.0,
+                        ),
+                        vertices=VENT_CYLINDER_VERTICES,
+                    )
+                )
+        subtract_many(
+            enclosure,
+            mic_vent_cutters,
+            "Accessory_Bottom_Mic_Vent_Pattern",
+        )
+
+    # Stop the top wall before the cover groove, leaving a top insertion slot.
+    top_wall_end_y = cover_front_y - ACCESSORY_COVER_CLEARANCE
+    top_depth = top_wall_end_y - wall_start_y
+    top = add_box(
+        "Accessory_Top_Wall_With_Cover_Slot",
+        (CASE_WIDTH - 2 * wall, top_depth, wall),
+        location=(
+            0.0,
+            wall_start_y + top_depth / 2.0,
+            CASE_HEIGHT / 2.0 - wall / 2.0,
+        ),
+    )
+    unite(enclosure, top)
+
+    # Paired inner/outer rails capture the cover while allowing top insertion.
+    rail_height = CASE_HEIGHT - 2 * wall
+    rail_x = CASE_WIDTH / 2.0 - wall + overlap - ACCESSORY_RAIL_PROTRUSION / 2.0
+    for side_label, x in (("Left", -rail_x), ("Right", rail_x)):
+        for rail_label, y in (("Inner", inner_rail_y), ("Outer", outer_rail_y)):
+            rail = add_box(
+                f"Accessory_{side_label}_{rail_label}_Cover_Rail",
+                (ACCESSORY_RAIL_PROTRUSION, wall, rail_height),
+                location=(x, y, 0.0),
+            )
+            unite(enclosure, rail)
+
+    cover_width = CASE_WIDTH - 2 * wall - 2 * ACCESSORY_COVER_CLEARANCE
+    groove_depth = ACCESSORY_COVER_THICKNESS + 2 * ACCESSORY_COVER_CLEARANCE
+    stop_z = -CASE_HEIGHT / 2.0 + wall + ACCESSORY_COVER_STOP_HEIGHT / 2.0
+    stop = add_box(
+        "Accessory_Cover_Bottom_Stop",
+        (cover_width, groove_depth, ACCESSORY_COVER_STOP_HEIGHT),
+        location=(0.0, cover_y, stop_z),
+    )
+    unite(enclosure, stop)
+
+    for module in ACCESSORY_MODULES:
+        add_module_corner_holders(enclosure, module, rear_y)
+
+    # Separate printable cover, shown in its installed position.
+    cover_bottom_z = stop_z + ACCESSORY_COVER_STOP_HEIGHT / 2.0
+    cover_height = (
+        CASE_HEIGHT
+        - 2 * wall
+        - ACCESSORY_COVER_STOP_HEIGHT
+        - ACCESSORY_COVER_CLEARANCE
+    )
+    cover_z = cover_bottom_z + cover_height / 2.0
+    cover = add_box(
+        "Accessory_Sliding_Cover",
+        (cover_width, ACCESSORY_COVER_THICKNESS, cover_height),
+        location=(0.0, cover_y, cover_z),
+    )
+    pull_tab = add_box(
+        "Accessory_Cover_Pull_Tab",
+        (
+            ACCESSORY_COVER_PULL_TAB_WIDTH,
+            ACCESSORY_COVER_THICKNESS,
+            ACCESSORY_COVER_PULL_TAB_HEIGHT,
+        ),
+        location=(
+            0.0,
+            cover_y,
+            cover_bottom_z + cover_height + ACCESSORY_COVER_PULL_TAB_HEIGHT / 2.0,
+        ),
+    )
+    unite(cover, pull_tab)
+
+    # Vent the cover over the speaker with a centered staggered circular grille.
+    if ENABLE_SPEAKER_VENTS:
+        speaker = next(
+            module for module in ACCESSORY_MODULES
+            if module.name.startswith("Speaker")
+        )
+        speaker_vent_cutters = []
+        for index, (x_offset, z_offset) in enumerate(
+            staggered_lattice_offsets(
+                SPEAKER_VENT_COLUMNS,
+                SPEAKER_VENT_ROWS,
+                SPEAKER_VENT_PITCH,
+            )
+        ):
+            speaker_vent_cutters.append(
+                add_y_cylinder(
+                    f"Speaker_Vent_{index}",
+                    SPEAKER_VENT_HOLE_DIAMETER,
+                    ACCESSORY_COVER_THICKNESS + 2 * BOOLEAN_MARGIN,
+                    location=(
+                        speaker.x + x_offset,
+                        cover_y,
+                        speaker.z + z_offset,
+                    ),
+                    vertices=VENT_CYLINDER_VERTICES,
+                )
+            )
+        subtract_many(cover, speaker_vent_cutters, "Speaker_Vent_Pattern")
+
+    if ENABLE_ACCESSORY_COVER_LOCK:
+        cover_top_z = cover_bottom_z + cover_height
+
+        # Two slots isolate a flexible center tongue while retaining it at the
+        # bottom. Pressing this flap inward releases its rear-facing snap hook.
+        slot_start_z = cover_top_z - ACCESSORY_LOCK_FLAP_LENGTH
+        slot_end_z = cover_top_z + BOOLEAN_MARGIN
+        slot_height = slot_end_z - slot_start_z
+        slot_x = (
+            ACCESSORY_LOCK_FLAP_WIDTH / 2.0
+            + ACCESSORY_LOCK_SLOT_WIDTH / 2.0
+        )
+        for label, x in (("Left", -slot_x), ("Right", slot_x)):
+            slot = add_box(
+                f"Accessory_Lock_Flap_{label}_Relief",
+                (
+                    ACCESSORY_LOCK_SLOT_WIDTH,
+                    ACCESSORY_COVER_THICKNESS + 2 * BOOLEAN_MARGIN,
+                    slot_height,
+                ),
+                location=(0.0 + x, cover_y, (slot_start_z + slot_end_z) / 2.0),
+            )
+            subtract(cover, slot)
+
+        catch_bottom_z = cover_top_z - ACCESSORY_LOCK_CATCH_HEIGHT
+        hook_top_z = catch_bottom_z - ACCESSORY_LOCK_VERTICAL_CLEARANCE
+        hook = add_box(
+            "Accessory_Cover_Snap_Hook",
+            (
+                ACCESSORY_LOCK_FLAP_WIDTH,
+                ACCESSORY_LOCK_HOOK_DEPTH,
+                ACCESSORY_LOCK_HOOK_HEIGHT,
+            ),
+            location=(
+                0.0,
+                cover_y
+                + ACCESSORY_COVER_THICKNESS / 2.0
+                + ACCESSORY_LOCK_HOOK_DEPTH / 2.0
+                - ACCESSORY_LOCK_HOOK_EMBED,
+                hook_top_z - ACCESSORY_LOCK_HOOK_HEIGHT / 2.0,
+            ),
+        )
+        apply_bevel(
+            hook,
+            min(0.30, ACCESSORY_LOCK_HOOK_DEPTH / 3.0),
+            segments=2,
+        )
+        unite(cover, hook)
+
+        # A full-width header joins both outer rails and catches the hook when
+        # the installed cover is pulled upward.
+        catch = add_box(
+            "Accessory_Cover_Lock_Catch_Bar",
+            (
+                CASE_WIDTH - 2 * wall,
+                wall,
+                ACCESSORY_LOCK_CATCH_HEIGHT,
+            ),
+            location=(
+                0.0,
+                outer_rail_y,
+                cover_top_z - ACCESSORY_LOCK_CATCH_HEIGHT / 2.0,
+            ),
+        )
+        unite(enclosure, catch)
+
+    cover["print_separately"] = True
+    cover["slide_direction"] = "Insert from +Z (top), slide toward -Z"
+    cover["clearance_mm"] = ACCESSORY_COVER_CLEARANCE
+    cover["snap_flap_lock_enabled"] = ENABLE_ACCESSORY_COVER_LOCK
+    cover["speaker_vent_pattern"] = (
+        f"{SPEAKER_VENT_COLUMNS} x {SPEAKER_VENT_ROWS}, "
+        f"diameter {SPEAKER_VENT_HOLE_DIAMETER} mm"
+    )
+    return cover
 
 
 def make_material():
@@ -330,6 +767,16 @@ def validate_parameters() -> None:
         raise ValueError("Display platform must sit behind the front shell.")
     if DISPLAY_RECESS_DEPTH + DISPLAY_PLATFORM_THICKNESS >= CASE_DEPTH - REAR_WALL:
         raise ValueError("Display platform leaves no usable rear cavity.")
+    if ENABLE_RECESSED_SCREW_WELLS:
+        screw_gap = CASE_DEPTH - REAR_WALL - SCREW_MOUNT_DEPTH_FROM_FRONT
+        if screw_gap <= 0:
+            raise ValueError("Rear wall reaches or crosses the screw mounts.")
+        if SCREW_WELL_INNER_DIAMETER <= SCREW_HOLE_DIAMETER:
+            raise ValueError("Screw well must be wider than its through-hole.")
+        if SCREW_WELL_FLOOR_THICKNESS >= (
+            CASE_DEPTH - SCREW_MOUNT_DEPTH_FROM_FRONT
+        ):
+            raise ValueError("Screw-well floor consumes the complete recess.")
     if USB_C_OPENING_WIDTH + 2 * USB_C_TUNNEL_WALL >= CASE_WIDTH:
         raise ValueError("USB-C guide tunnel is wider than the enclosure.")
     if USB_C_OPENING_DEPTH + 2 * USB_C_TUNNEL_WALL >= CASE_DEPTH:
@@ -345,10 +792,61 @@ def validate_parameters() -> None:
         raise ValueError("USB-C guide tunnel extends beyond the rear surface.")
     if USB_C_TUNNEL_LENGTH <= SIDE_WALL:
         raise ValueError("USB-C guide tunnel must extend beyond the side wall.")
+    if ENABLE_BASE_AIR_VENTS and (
+        BASE_AIR_VENT_DIAMETER <= 0
+        or BASE_AIR_VENT_PITCH <= BASE_AIR_VENT_DIAMETER
+        or BASE_SIDE_VENT_COLUMNS < 2
+        or BASE_SIDE_VENT_ROWS < 1
+        or BASE_TOP_VENT_COLUMNS < 2
+        or BASE_TOP_VENT_ROWS < 1
+    ):
+        raise ValueError("Base airflow vent pattern is invalid.")
+    if ENABLE_BASE_MIC_PORTS and (
+        BASE_MIC_PORT_DIAMETER <= 0 or len(BASE_MIC_CENTRES_X) != 2
+    ):
+        raise ValueError("Exactly two valid USB-C microphone ports are required.")
     if ENABLE_REAR_SUPPORT_ACCESS_HOLE and not (
         0 < REAR_SUPPORT_ACCESS_HOLE_DIAMETER < min(CASE_WIDTH, CASE_HEIGHT)
     ):
         raise ValueError("Rear support-access hole diameter is invalid.")
+    if ENABLE_BACK_ACCESSORY_LAYER:
+        if ACCESSORY_INTERNAL_DEPTH < ACCESSORY_MAX_HEIGHT:
+            raise ValueError("Accessory chamber is shallower than its modules.")
+        if ACCESSORY_COVER_THICKNESS + 2 * ACCESSORY_COVER_CLEARANCE <= 0:
+            raise ValueError("Accessory cover groove is invalid.")
+        if ENABLE_ACCESSORY_COVER_LOCK and (
+            ACCESSORY_LOCK_FLAP_WIDTH <= 0
+            or ACCESSORY_LOCK_FLAP_LENGTH <= ACCESSORY_LOCK_HOOK_HEIGHT
+            or ACCESSORY_LOCK_SLOT_WIDTH <= 0
+            or ACCESSORY_LOCK_HOOK_EMBED <= 0
+            or ACCESSORY_LOCK_HOOK_EMBED >= ACCESSORY_LOCK_HOOK_DEPTH
+            or ACCESSORY_LOCK_HOOK_EMBED > ACCESSORY_COVER_THICKNESS
+        ):
+            raise ValueError("Accessory cover-lock dimensions are invalid.")
+        if ENABLE_SPEAKER_VENTS and (
+            SPEAKER_VENT_HOLE_DIAMETER <= 0
+            or SPEAKER_VENT_PITCH <= SPEAKER_VENT_HOLE_DIAMETER
+            or SPEAKER_VENT_COLUMNS < 1
+            or SPEAKER_VENT_ROWS < 1
+        ):
+            raise ValueError("Speaker vent pattern is invalid.")
+        if ENABLE_ACCESSORY_BOTTOM_MIC_VENTS and (
+            ACCESSORY_BOTTOM_MIC_VENT_DIAMETER <= 0
+            or ACCESSORY_BOTTOM_MIC_VENT_PITCH
+            <= ACCESSORY_BOTTOM_MIC_VENT_DIAMETER
+        ):
+            raise ValueError("Accessory microphone rosette pattern is invalid.")
+        for module in ACCESSORY_MODULES:
+            holder_half_w = (
+                module.width + MODULE_HOLDER_CLEARANCE
+            ) / 2.0 + ACCESSORY_WALL_THICKNESS
+            holder_half_h = (
+                module.height + MODULE_HOLDER_CLEARANCE
+            ) / 2.0 + ACCESSORY_WALL_THICKNESS
+            if abs(module.x) + holder_half_w > CASE_WIDTH / 2.0:
+                raise ValueError(f"{module.name} holder exceeds enclosure width.")
+            if abs(module.z) + holder_half_h > CASE_HEIGHT / 2.0:
+                raise ValueError(f"{module.name} holder exceeds enclosure height.")
     if usable_depth_from_front < required_depth_from_front:
         raise ValueError(
             f"Usable depth from the flush display face is "
@@ -494,15 +992,62 @@ def build_enclosure():
         )
         subtract(enclosure, support_access_cutter)
 
-    for index, (drawing_x, z) in enumerate(SCREW_CENTRES, start=1):
-        cutter = add_y_cylinder(
-            f"M2_Screw_Hole_{index}",
-            SCREW_HOLE_DIAMETER,
-            rear_cut_depth,
-            # A rear view looks along -Y, so drawing-right is Blender -X.
-            location=(-drawing_x, rear_y, z),
+    if ENABLE_RECESSED_SCREW_WELLS:
+        screw_mount_y = front_y + SCREW_MOUNT_DEPTH_FROM_FRONT
+        screw_cup_depth = rear_y - screw_mount_y
+        screw_cup_y = (rear_y + screw_mount_y) / 2.0
+        screw_cup_outer_diameter = (
+            SCREW_WELL_INNER_DIAMETER + 2 * SCREW_WELL_WALL_THICKNESS
         )
-        subtract(enclosure, cutter)
+        well_floor_rear_y = screw_mount_y + SCREW_WELL_FLOOR_THICKNESS
+        well_cut_end_y = rear_y + BOOLEAN_MARGIN
+        well_cut_depth = well_cut_end_y - well_floor_rear_y
+        screw_cut_start_y = screw_mount_y - BOOLEAN_MARGIN
+        screw_cut_end_y = rear_y + BOOLEAN_MARGIN
+
+        for index, (drawing_x, z) in enumerate(SCREW_CENTRES, start=1):
+            world_x = -drawing_x
+            cup = add_y_cylinder(
+                f"M2_Recessed_Cup_{index}",
+                screw_cup_outer_diameter,
+                screw_cup_depth,
+                location=(world_x, screw_cup_y, z),
+            )
+            unite(enclosure, cup)
+
+            well = add_y_cylinder(
+                f"M2_Head_Recess_{index}",
+                SCREW_WELL_INNER_DIAMETER,
+                well_cut_depth,
+                location=(
+                    world_x,
+                    (well_floor_rear_y + well_cut_end_y) / 2.0,
+                    z,
+                ),
+            )
+            subtract(enclosure, well)
+
+            through_hole = add_y_cylinder(
+                f"M2_Screw_Hole_{index}",
+                SCREW_HOLE_DIAMETER,
+                screw_cut_end_y - screw_cut_start_y,
+                location=(
+                    world_x,
+                    (screw_cut_start_y + screw_cut_end_y) / 2.0,
+                    z,
+                ),
+            )
+            subtract(enclosure, through_hole)
+    else:
+        for index, (drawing_x, z) in enumerate(SCREW_CENTRES, start=1):
+            cutter = add_y_cylinder(
+                f"M2_Screw_Hole_{index}",
+                SCREW_HOLE_DIAMETER,
+                rear_cut_depth,
+                # A rear view looks along -Y, so drawing-right is Blender -X.
+                location=(-drawing_x, rear_y, z),
+            )
+            subtract(enclosure, cutter)
 
     # Rear rectangular access openings.
     for opening in REAR_RECTANGLES:
@@ -513,18 +1058,8 @@ def build_enclosure():
         )
         subtract(enclosure, cutter)
 
-    # Rear microphone acoustic holes.
-    for index, (drawing_x, z) in enumerate(MIC_CENTRES, start=1):
-        cutter = add_y_cylinder(
-            f"Microphone_Hole_{index}",
-            MIC_HOLE_DIAMETER,
-            rear_cut_depth,
-            location=(-drawing_x, rear_y, z),
-        )
-        subtract(enclosure, cutter)
-
-    # USB-C access through the bottom (-Z) side wall. The guide tunnel is
-    # optional so the opening position can be evaluated on its own first.
+    # USB-C access through the bottom (-Z) side wall. The rounded guide tunnel
+    # now reaches from the shell exterior to the edge-mounted receptacle.
     usb_y = front_y + USB_C_CENTRE_FROM_FRONT
     bottom_z = -CASE_HEIGHT / 2.0
     if ENABLE_USB_C_TUNNEL:
@@ -547,25 +1082,25 @@ def build_enclosure():
             ),
             location=(0.0, tunnel_outer_y, tunnel_z),
         )
-        tunnel_void = add_box(
+        subtract_z_capsule(
+            tunnel,
             "USB_C_Tunnel_Interior",
-            (
-                USB_C_OPENING_WIDTH,
-                USB_C_OPENING_DEPTH,
-                USB_C_TUNNEL_LENGTH + 2 * BOOLEAN_MARGIN,
-            ),
+            USB_C_OPENING_WIDTH,
+            USB_C_OPENING_DEPTH,
+            USB_C_TUNNEL_LENGTH + 2 * BOOLEAN_MARGIN,
             location=(0.0, usb_y, tunnel_z),
         )
-        subtract(tunnel, tunnel_void)
         unite(enclosure, tunnel)
         usb_cut_height = USB_C_TUNNEL_LENGTH + 2 * BOOLEAN_MARGIN
         usb_cut_z = tunnel_z
-        usb_cutter = add_box(
+        subtract_z_capsule(
+            enclosure,
             "USB_C_Tunnel_Clearance",
-            (USB_C_OPENING_WIDTH, USB_C_OPENING_DEPTH, usb_cut_height),
+            USB_C_OPENING_WIDTH,
+            USB_C_OPENING_DEPTH,
+            usb_cut_height,
             location=(0.0, usb_y, usb_cut_z),
         )
-        subtract(enclosure, usb_cutter)
     else:
         usb_cut_height = SIDE_WALL + 2 * BOOLEAN_MARGIN
         usb_cut_z = bottom_z
@@ -578,11 +1113,69 @@ def build_enclosure():
             location=(0.0, usb_y, usb_cut_z),
         )
 
+    # Mac-Pro-inspired staggered circular lattices through the two side walls
+    # and top wall. Each panel is centered and retains a clean solid border.
+    if ENABLE_BASE_AIR_VENTS:
+        airflow_cutters = []
+        for side_label, x in (("Left", -CASE_WIDTH / 2.0),
+                              ("Right", CASE_WIDTH / 2.0)):
+            for index, (y_offset, z_offset) in enumerate(
+                staggered_lattice_offsets(
+                    BASE_SIDE_VENT_COLUMNS,
+                    BASE_SIDE_VENT_ROWS,
+                    BASE_AIR_VENT_PITCH,
+                )
+            ):
+                airflow_cutters.append(
+                    add_x_cylinder(
+                        f"Base_{side_label}_Air_Vent_{index}",
+                        BASE_AIR_VENT_DIAMETER,
+                        SIDE_WALL + 2 * BOOLEAN_MARGIN,
+                        location=(x, y_offset, z_offset),
+                        vertices=VENT_CYLINDER_VERTICES,
+                    )
+                )
+
+        for index, (x_offset, y_offset) in enumerate(
+            staggered_lattice_offsets(
+                BASE_TOP_VENT_COLUMNS,
+                BASE_TOP_VENT_ROWS,
+                BASE_AIR_VENT_PITCH,
+            )
+        ):
+            airflow_cutters.append(
+                add_z_cylinder(
+                    f"Base_Top_Air_Vent_{index}",
+                    BASE_AIR_VENT_DIAMETER,
+                    SIDE_WALL + 2 * BOOLEAN_MARGIN,
+                    location=(x_offset, y_offset, CASE_HEIGHT / 2.0),
+                    vertices=VENT_CYLINDER_VERTICES,
+                )
+            )
+        subtract_many(enclosure, airflow_cutters, "Base_Airflow_Vent_Pattern")
+
+    # The two actual microphone ports through the base bottom, one immediately
+    # on each side of USB-C at the same front-to-rear position.
+    if ENABLE_BASE_MIC_PORTS:
+        for index, mic_x in enumerate(BASE_MIC_CENTRES_X, start=1):
+            mic_port = add_z_cylinder(
+                f"Base_Microphone_Hole_{index}",
+                BASE_MIC_PORT_DIAMETER,
+                SIDE_WALL + 2 * BOOLEAN_MARGIN,
+                location=(mic_x, usb_y, bottom_z),
+            )
+            subtract(enclosure, mic_port)
+
+    cover = build_back_accessory_layer(enclosure, rear_y)
+
     # Optional cut-edge softening. Leave this at zero for a full-width, flat
     # display seating shoulder; external case corners were already rounded.
     if EDGE_BEVEL > 0:
         apply_bevel(enclosure, EDGE_BEVEL, segments=2)
-    enclosure.data.materials.append(make_material())
+    material = make_material()
+    enclosure.data.materials.append(material)
+    if cover is not None:
+        cover.data.materials.append(material)
 
     # Improve viewport presentation without affecting exported geometry.
     enclosure.select_set(True)
@@ -615,20 +1208,40 @@ def build_enclosure():
         enclosure["rear_support_access_hole_diameter_mm"] = (
             REAR_SUPPORT_ACCESS_HOLE_DIAMETER
         )
+    enclosure["recessed_screw_wells_enabled"] = ENABLE_RECESSED_SCREW_WELLS
+    if ENABLE_RECESSED_SCREW_WELLS:
+        enclosure["screw_mount_gap_mm"] = (
+            CASE_DEPTH - REAR_WALL - SCREW_MOUNT_DEPTH_FROM_FRONT
+        )
+        enclosure["screw_head_recess_depth_mm"] = (
+            CASE_DEPTH
+            - SCREW_MOUNT_DEPTH_FROM_FRONT
+            - SCREW_WELL_FLOOR_THICKNESS
+        )
     if ENABLE_USB_C_TUNNEL:
         enclosure["usb_c_tunnel_mm"] = (
             f"length {USB_C_TUNNEL_LENGTH}, wall {USB_C_TUNNEL_WALL}"
         )
+    enclosure["back_accessory_layer_enabled"] = ENABLE_BACK_ACCESSORY_LAYER
+    enclosure["base_air_vents_enabled"] = ENABLE_BASE_AIR_VENTS
+    enclosure["base_mic_ports_enabled"] = ENABLE_BASE_MIC_PORTS
+    enclosure["accessory_bottom_mic_vents_enabled"] = (
+        ENABLE_ACCESSORY_BOTTOM_MIC_VENTS
+    )
+    if ENABLE_BACK_ACCESSORY_LAYER:
+        enclosure["accessory_internal_depth_mm"] = ACCESSORY_INTERNAL_DEPTH
+        enclosure["accessory_layout"] = "Battery left; GPS upper-right; speaker lower-right"
     enclosure["notes"] = "Mic centres are drawing-scaled estimates; test fit."
-    return enclosure
+    return enclosure, cover
 
 
-def export_outputs(enclosure, output_dir: str) -> tuple[Path, Path]:
+def export_outputs(enclosure, cover, output_dir: str):
     base_dir = Path(bpy.path.abspath("//")).resolve()
     destination = (base_dir / output_dir).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     blend_path = destination / "esp32_s3_touch_amoled_1_75_enclosure.blend"
     stl_path = destination / "esp32_s3_touch_amoled_1_75_enclosure.stl"
+    cover_stl_path = destination / "esp32_s3_touch_amoled_1_75_sliding_cover.stl"
 
     bpy.ops.object.select_all(action="DESELECT")
     enclosure.select_set(True)
@@ -643,12 +1256,26 @@ def export_outputs(enclosure, output_dir: str) -> tuple[Path, Path]:
         )
     else:
         bpy.ops.export_mesh.stl(filepath=str(stl_path), use_selection=True)
-    return blend_path, stl_path
+
+    if cover is not None:
+        bpy.ops.object.select_all(action="DESELECT")
+        cover.select_set(True)
+        bpy.context.view_layer.objects.active = cover
+        if hasattr(bpy.ops.wm, "stl_export"):
+            bpy.ops.wm.stl_export(
+                filepath=str(cover_stl_path),
+                export_selected_objects=True,
+            )
+        else:
+            bpy.ops.export_mesh.stl(filepath=str(cover_stl_path), use_selection=True)
+    else:
+        cover_stl_path = None
+    return blend_path, stl_path, cover_stl_path
 
 
 def main() -> None:
     args = parse_args()
-    enclosure = build_enclosure()
+    enclosure, cover = build_enclosure()
     internal_depth = CASE_DEPTH - FRONT_WALL - REAR_WALL
     print(
         "Created ESP32 enclosure: "
@@ -660,9 +1287,13 @@ def main() -> None:
         f"board opening Ø{BOARD_OPENING_DIAMETER:.2f} mm."
     )
     if args.export:
-        blend_path, stl_path = export_outputs(enclosure, args.output_dir)
+        blend_path, stl_path, cover_stl_path = export_outputs(
+            enclosure, cover, args.output_dir
+        )
         print(f"Saved Blender file: {blend_path}")
         print(f"Exported STL: {stl_path}")
+        if cover_stl_path is not None:
+            print(f"Exported sliding cover STL: {cover_stl_path}")
 
 
 # Blender's VS Code extension executes scripts with runpy.run_path(), which
