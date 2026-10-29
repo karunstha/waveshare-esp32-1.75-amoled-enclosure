@@ -1,6 +1,6 @@
 # ESP32-S3 Touch AMOLED 1.75 enclosure
 
-The enclosure is a parameterized square shell plus a separate sliding rear
+The enclosure is a parameterized square shell plus a separate flush rear
 cover generated in Blender. It contains:
 
 -   a fully hollow 1.20 mm shell sized for three extrusion lines with a
@@ -23,8 +23,8 @@ cover generated in Blender. It contains:
 -   an optional rear accessory chamber with L-shaped corner holders for a
     22 × 53 mm battery, 30 × 30 mm GPS module, and a speaker rotated to
     30 × 20 mm; and
--   a top-loading sliding cover captured by paired side rails and a bottom
-    stop, with a flexible snap-flap lock; and
+-   a flush press-on cover retained by two hidden cantilever clips engaging
+    the top and bottom walls, with no raised rails, tabs, or latch bar; and
 -   a staggered circular speaker grille aligned with the speaker holder.
 -   Mac-Pro-inspired staggered circular vent lattices through both base side
     walls and the base top wall, using support-friendly 2 mm holes;
@@ -51,7 +51,7 @@ For command-line generation and automatic STL/Blend export:
 blender --background --python blender_enclosure.py -- --export
 ```
 
-This writes the Blend file, enclosure STL, and separate sliding-cover STL to
+This writes the Blend file, enclosure STL, and separate flush-cover STL to
 `output/`. To select another directory:
 
 ```sh
@@ -64,17 +64,19 @@ blender --background --python blender_enclosure.py -- \
 All measurements use millimetres and are grouped under `USER PARAMETERS`.
 
 -   `CASE_WIDTH`, `CASE_HEIGHT`, `CASE_DEPTH`: overall square enclosure size;
-    depth defaults to 15.0 mm and automatically grows if thicker walls require
+    depth defaults to 14.0 mm and automatically grows if thicker walls require
     more space for the device.
 -   `ENCLOSURE_THICKNESS`: side, front, and rear wall thickness, currently
     1.20 mm.
 -   `OUTER_CORNER_RADIUS`: currently `0.0`, producing sharp square corners;
     set it above zero when rounded corners are restored.
 -   `DEVICE_REAR_CLEARANCE` and `DEVICE_RADIAL_CLEARANCE`: required fit
-    allowances checked whenever dimensions or wall thickness change.
+    allowances checked whenever dimensions or wall thickness change. Rear
+    clearance is now 0.10 mm to fit the 12.70 mm hardware in the 14 mm section.
 -   `DISPLAY_POCKET_DIAMETER`: shallow recess for the Ø48.96 mm display.
 -   `DISPLAY_RECESS_DEPTH`: 2.05 mm, matching the protruding display stack.
--   `BOARD_OPENING_DIAMETER`: through-opening for the Ø46.00 mm PCB.
+-   `BOARD_OPENING_DIAMETER`: 46.30 mm through-opening for the Ø46.00 mm PCB,
+    providing 0.15 mm radial clearance.
 -   `DISPLAY_PLATFORM_THICKNESS` and `DISPLAY_SUPPORT_WALL_THICKNESS`: both
     follow the 1.20 mm enclosure thickness. The sleeve and flat ring are fused
     into one watertight display cup before it is joined to the shell, preventing
@@ -85,16 +87,18 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     all four cable windows; their default width is 10.0 mm.
 -   `SCREW_CENTRES`: the three M2 locations from the mechanical drawing.
 -   `ENABLE_RECESSED_SCREW_WELLS` and the `SCREW_WELL_*` parameters: control
-    the three guided screw recesses and their bottom shoulders.
+    the three guided screw recesses and their bottom shoulders. The default
+    `SCREW_WELL_DEPTH_REDUCTION` shortens each bump by 1.5 mm. With the 14 mm
+    main section, each bump projects 0.9 mm inward from the rear wall.
 -   `PIN8_OPENING`, `SPEAKER_OPENING`, `BATTERY_OPENING`: rear connector  
     openings as `(centre_x, centre_z, width, height)`.
 -   `BASE_MIC_CENTRES_X`: estimated bottom acoustic-port centres beside USB-C.
 -   `USB_C_OPENING_WIDTH`, `USB_C_OPENING_DEPTH`, and
     `USB_C_CENTRE_FROM_FRONT`: STEP-derived bottom-side USB-C geometry. The
     receptacle envelope is 9.58 × 4.16 mm. The cutout is now 11.58 × 6.16 mm,
-    providing 1.0 mm clearance on every side, and its center is shifted 2.0 mm
-    toward the rear/base to 10.07 mm behind the display. The cutout uses the
-    connector's rounded capsule profile rather than a box.
+    providing 1.0 mm clearance on every side. Its center is 6.99 mm behind the
+    display after moving it toward the display by half the opening depth. The
+    cutout uses the connector's rounded capsule profile rather than a box.
 -   `USB_C_TUNNEL_LENGTH` and `USB_C_TUNNEL_WALL`: internal guide sleeve
     length and wall thickness.
 -   `ENABLE_USB_C_TUNNEL`: currently `True`, adding a 6.2 mm-long rounded guide
@@ -105,15 +109,18 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
 -   `REAR_SUPPORT_ACCESS_HOLE_DIAMETER`: rear support-access diameter,
     defaulting to 28.0 mm to remain clear of the connector openings.
 -   `ENABLE_BACK_ACCESSORY_LAYER`: enables the complete rear component chamber
-    and separate sliding cover.
--   `ACCESSORY_MAX_HEIGHT` and `ACCESSORY_DEPTH_CLEARANCE`: define the 12.8 mm
-    internal chamber depth for modules up to 12 mm tall.
+    and separate flush snap cover.
+-   `ACCESSORY_DEPTH_REDUCTION`: shortens the rear chamber by 2 mm, leaving
+    10.8 mm internal depth. Verify any nominally 12 mm component before print.
+-   `ENABLE_GPS_MIDDLE_PANEL_OPENING`: cuts a 24 × 24 mm GPS antenna window
+    through the fixed middle panel while leaving the rear cover intact. A
+    circular solid keep-out preserves and connects the nearby screw cup.
 -   `MODULE_HOLDER_CLEARANCE`, `MODULE_HOLDER_HEIGHT`, and
     `MODULE_HOLDER_ARM_LENGTH`: control the open L-shaped corner retainers.
--   `ACCESSORY_COVER_THICKNESS`, `ACCESSORY_COVER_CLEARANCE`, and
-    `ACCESSORY_RAIL_PROTRUSION`: control the top-loading sliding-cover fit.
--   `ENABLE_ACCESSORY_COVER_LOCK` and the `ACCESSORY_LOCK_*` parameters:
-    control the flexible center flap, snap hook, and full-width catch bar.
+-   `ENABLE_FLUSH_SNAP_COVER` and the `ACCESSORY_SNAP_*` parameters control one
+    top and one bottom clip with matching release slots. Both clips sit in the
+    X-axis gap between the GPS/speaker and battery footprints. All retention
+    features remain inside the 60 × 60 mm outline.
 -   `ENABLE_SPEAKER_VENTS` and the `SPEAKER_VENT_*` parameters: control the
     rear-cover speaker grille pattern.
 -   `ENABLE_BASE_AIR_VENTS`, `BASE_AIR_VENT_PITCH`, and the related row/column

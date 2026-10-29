@@ -26,9 +26,11 @@ import bpy
 
 # Hardware envelope and fit allowances
 MODULE_MAX_DEPTH = 12.70
-DEVICE_REAR_CLEARANCE = 1.00
+# The 14 mm main section leaves 0.10 mm behind the 12.70 mm hardware once the
+# 1.20 mm rear wall is included.
+DEVICE_REAR_CLEARANCE = 0.10
 DEVICE_RADIAL_CLEARANCE = 1.00
-MIN_CASE_DEPTH = 15.0
+MIN_CASE_DEPTH = 14.0
 
 # Enclosure envelope
 CASE_WIDTH = 60.0
@@ -58,7 +60,8 @@ DISPLAY_OUTER_DIAMETER = 48.96
 BOARD_OUTER_DIAMETER = 46.00
 DISPLAY_RECESS_DEPTH = 2.05
 DISPLAY_DIAMETRAL_CLEARANCE = 0.40
-BOARD_DIAMETRAL_CLEARANCE = 0.50
+# Reduced by 0.20 mm diametrically, i.e. 0.10 mm on the inner radius.
+BOARD_DIAMETRAL_CLEARANCE = 0.30
 DISPLAY_POCKET_DIAMETER = DISPLAY_OUTER_DIAMETER + DISPLAY_DIAMETRAL_CLEARANCE
 BOARD_OPENING_DIAMETER = BOARD_OUTER_DIAMETER + BOARD_DIAMETRAL_CLEARANCE
 
@@ -77,11 +80,12 @@ SCREW_CENTRES = (
     (+20.50, 0.00),
 )
 
-# Recessed screw cups bridge the air gap from the rear wall to the three
+# Recessed screw cups project inward from the rear wall toward the three
 # M2 x 3.5 mm threaded standoffs. The drawing places the standoff tips 10.40 mm
-# behind the flush display surface.
+# behind the flush display surface; the cups intentionally stop 1.5 mm short.
 ENABLE_RECESSED_SCREW_WELLS = True
 SCREW_MOUNT_DEPTH_FROM_FRONT = 10.40
+SCREW_WELL_DEPTH_REDUCTION = 1.50
 SCREW_WELL_INNER_DIAMETER = 5.00
 SCREW_WELL_WALL_THICKNESS = ENCLOSURE_THICKNESS
 SCREW_WELL_FLOOR_THICKNESS = ENCLOSURE_THICKNESS
@@ -102,34 +106,38 @@ REAR_SUPPORT_ACCESS_HOLE_DIAMETER = 28.0
 ENABLE_BACK_ACCESSORY_LAYER = True
 ACCESSORY_MAX_HEIGHT = 12.0
 ACCESSORY_DEPTH_CLEARANCE = 0.80
-ACCESSORY_INTERNAL_DEPTH = ACCESSORY_MAX_HEIGHT + ACCESSORY_DEPTH_CLEARANCE
+# Reduce the rear protrusion by 2 mm. This gives 10.8 mm usable depth, so any
+# nominal 12 mm component must compress or have a locally relieved cover.
+ACCESSORY_DEPTH_REDUCTION = 2.0
+ACCESSORY_INTERNAL_DEPTH = (
+    ACCESSORY_MAX_HEIGHT
+    + ACCESSORY_DEPTH_CLEARANCE
+    - ACCESSORY_DEPTH_REDUCTION
+)
 ACCESSORY_WALL_THICKNESS = ENCLOSURE_THICKNESS
 MODULE_HOLDER_CLEARANCE = 0.60
 MODULE_HOLDER_HEIGHT = 3.0
 MODULE_HOLDER_ARM_LENGTH = 5.0
 
-# Top-loading sliding cover and guide rails.
+# Add a GPS antenna window through the fixed middle mounting panel.
+ENABLE_GPS_MIDDLE_PANEL_OPENING = True
+GPS_MIDDLE_PANEL_OPENING_SIZE = 24.0
+# Preserve a solid circular patch around the nearby lower GPS-area screw cup.
+GPS_SCREW_KEEP_OUT_MARGIN = 1.0
+
+# Flush press-on cover. One top and one bottom cantilever clip sit in the
+# narrow X gap between the left modules and battery, avoiding all components.
 ACCESSORY_COVER_THICKNESS = ENCLOSURE_THICKNESS
-ACCESSORY_COVER_CLEARANCE = 0.35
-ACCESSORY_RAIL_PROTRUSION = 2.0
-ACCESSORY_COVER_STOP_HEIGHT = 2.0
-ACCESSORY_COVER_PULL_TAB_WIDTH = 12.0
-ACCESSORY_COVER_PULL_TAB_HEIGHT = 2.0
+ENABLE_FLUSH_SNAP_COVER = True
+ACCESSORY_SNAP_CLIP_LENGTH = 6.0
+ACCESSORY_SNAP_CLIP_THICKNESS = 0.80
+ACCESSORY_SNAP_CLIP_WIDTH = 3.0
+ACCESSORY_SNAP_HOOK_PROJECTION = 0.80
+ACCESSORY_SNAP_HOOK_LENGTH = 1.50
+ACCESSORY_SNAP_SLOT_CLEARANCE = 0.35
+ACCESSORY_SNAP_CLIP_X_CENTRE = 4.0
 
-# Flexible snap-flap lock integrated into the top center of the sliding cover.
-ENABLE_ACCESSORY_COVER_LOCK = True
-ACCESSORY_LOCK_FLAP_WIDTH = 12.0
-ACCESSORY_LOCK_FLAP_LENGTH = 12.0
-ACCESSORY_LOCK_SLOT_WIDTH = 1.0
-ACCESSORY_LOCK_HOOK_DEPTH = 1.20
-ACCESSORY_LOCK_HOOK_HEIGHT = 1.50
-# Embed the snap hook into the cover instead of merely touching its surface.
-# A volumetric overlap is essential for a watertight union in slicers.
-ACCESSORY_LOCK_HOOK_EMBED = 0.60
-ACCESSORY_LOCK_CATCH_HEIGHT = 1.20
-ACCESSORY_LOCK_VERTICAL_CLEARANCE = 0.20
-
-# Speaker grille through the sliding rear cover.
+# Speaker grille through the flush rear cover.
 ENABLE_SPEAKER_VENTS = True
 SPEAKER_VENT_HOLE_DIAMETER = 2.00
 SPEAKER_VENT_COLUMNS = 7
@@ -171,8 +179,9 @@ USB_C_RECEPTACLE_DEPTH = 4.16
 USB_C_CUTOUT_CLEARANCE = 2.00
 USB_C_OPENING_WIDTH = USB_C_RECEPTACLE_WIDTH + USB_C_CUTOUT_CLEARANCE
 USB_C_OPENING_DEPTH = USB_C_RECEPTACLE_DEPTH + USB_C_CUTOUT_CLEARANCE
-# Shifted 2.0 mm farther toward the rear/base from the STEP-derived 8.07 mm.
-USB_C_CENTRE_FROM_FRONT = 10.07
+# Start from the previous 10.07 mm location and move toward the display by half
+# of the finished opening depth (6.16 / 2 = 3.08 mm).
+USB_C_CENTRE_FROM_FRONT = 10.07 - USB_C_OPENING_DEPTH / 2.0
 ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
@@ -362,7 +371,11 @@ def apply_bevel(obj, width: float, segments: int = 3) -> None:
 def subtract(target, cutter, solver: str = "EXACT") -> None:
     modifier = target.modifiers.new(name=f"Cut_{cutter.name}", type="BOOLEAN")
     modifier.operation = "DIFFERENCE"
-    modifier.solver = solver
+    try:
+        modifier.solver = solver
+    except TypeError:
+        # Blender 5.x renamed the FAST solver to FLOAT.
+        modifier.solver = "FLOAT" if solver == "FAST" else solver
     modifier.object = cutter
     bpy.context.view_layer.objects.active = target
     bpy.ops.object.modifier_apply(modifier=modifier.name)
@@ -483,9 +496,11 @@ def add_module_corner_holders(
 
             z_wall = add_box(
                 f"{module.name}_Corner_Z_{int(x_sign)}_{int(z_sign)}",
-                (arm, holder_depth, wall),
+                # Extended over the corner so the two arms share a face;
+                # edge-only contact leaves non-manifold edges after the union.
+                (arm + wall, holder_depth, wall),
                 location=(
-                    module.x + x_sign * (half_w - arm / 2.0),
+                    module.x + x_sign * (half_w - arm / 2.0 + wall / 2.0),
                     holder_y,
                     module.z + z_sign * (half_h + wall / 2.0),
                 ),
@@ -494,7 +509,7 @@ def add_module_corner_holders(
 
 
 def build_back_accessory_layer(enclosure, rear_y: float):
-    """Add the rear component tray and return its separate sliding cover."""
+    """Add the rear component tray and its flush, internally clipped cover."""
     if not ENABLE_BACK_ACCESSORY_LAYER:
         return None
 
@@ -502,17 +517,46 @@ def build_back_accessory_layer(enclosure, rear_y: float):
     overlap = min(0.20, wall / 2.0)
     cover_front_y = rear_y + ACCESSORY_INTERNAL_DEPTH
     cover_y = cover_front_y + ACCESSORY_COVER_THICKNESS / 2.0
-    groove_half_depth = (
-        ACCESSORY_COVER_THICKNESS / 2.0 + ACCESSORY_COVER_CLEARANCE
-    )
-    inner_rail_y = cover_y - groove_half_depth - wall / 2.0
-    outer_rail_y = cover_y + groove_half_depth + wall / 2.0
-    outer_end_y = outer_rail_y + wall / 2.0
     wall_start_y = rear_y - overlap
-    extension_depth = outer_end_y - wall_start_y
-    extension_y = (wall_start_y + outer_end_y) / 2.0
+    extension_depth = cover_front_y - wall_start_y
+    extension_y = (wall_start_y + cover_front_y) / 2.0
 
-    # Left, right, and bottom walls extend the existing enclosure rearward.
+    if ENABLE_GPS_MIDDLE_PANEL_OPENING:
+        gps = next(
+            module for module in ACCESSORY_MODULES
+            if module.name.startswith("GPS")
+        )
+        gps_opening = add_box(
+            "GPS_24mm_Middle_Panel_Window",
+            (
+                GPS_MIDDLE_PANEL_OPENING_SIZE,
+                REAR_WALL + 2 * BOOLEAN_MARGIN,
+                GPS_MIDDLE_PANEL_OPENING_SIZE,
+            ),
+            location=(gps.x, rear_y, gps.z),
+        )
+        nearest_screw = min(
+            SCREW_CENTRES,
+            key=lambda centre: (
+                (-centre[0] - gps.x) ** 2 + (centre[1] - gps.z) ** 2
+            ),
+        )
+        screw_keep_out = add_y_cylinder(
+            "GPS_Opening_Screw_Keep_Out",
+            (
+                SCREW_WELL_INNER_DIAMETER
+                + 2 * SCREW_WELL_WALL_THICKNESS
+                + 2 * GPS_SCREW_KEEP_OUT_MARGIN
+            ),
+            REAR_WALL + 4 * BOOLEAN_MARGIN,
+            location=(-nearest_screw[0], rear_y, nearest_screw[1]),
+        )
+        # Removing this cylinder from the cutter leaves a connected solid patch
+        # around the screw cup when the GPS window is cut from the middle panel.
+        subtract(gps_opening, screw_keep_out)
+        subtract(enclosure, gps_opening)
+
+    # Four full-depth perimeter walls terminate against the flush cover.
     for label, x in (("Left", -CASE_WIDTH / 2.0 + wall / 2.0),
                      ("Right", CASE_WIDTH / 2.0 - wall / 2.0)):
         side = add_box(
@@ -528,6 +572,13 @@ def build_back_accessory_layer(enclosure, rear_y: float):
         location=(0.0, extension_y, -CASE_HEIGHT / 2.0 + wall / 2.0),
     )
     unite(enclosure, bottom)
+
+    top = add_box(
+        "Accessory_Top_Wall",
+        (CASE_WIDTH - 2 * wall, extension_depth, wall),
+        location=(0.0, extension_y, CASE_HEIGHT / 2.0 - wall / 2.0),
+    )
+    unite(enclosure, top)
 
     if ENABLE_ACCESSORY_BOTTOM_MIC_VENTS:
         vent_y = rear_y + ACCESSORY_BOTTOM_MIC_VENT_OFFSET_FROM_FRONT
@@ -555,73 +606,80 @@ def build_back_accessory_layer(enclosure, rear_y: float):
             "Accessory_Bottom_Mic_Vent_Pattern",
         )
 
-    # Stop the top wall before the cover groove, leaving a top insertion slot.
-    top_wall_end_y = cover_front_y - ACCESSORY_COVER_CLEARANCE
-    top_depth = top_wall_end_y - wall_start_y
-    top = add_box(
-        "Accessory_Top_Wall_With_Cover_Slot",
-        (CASE_WIDTH - 2 * wall, top_depth, wall),
-        location=(
-            0.0,
-            wall_start_y + top_depth / 2.0,
-            CASE_HEIGHT / 2.0 - wall / 2.0,
-        ),
-    )
-    unite(enclosure, top)
-
-    # Paired inner/outer rails capture the cover while allowing top insertion.
-    rail_height = CASE_HEIGHT - 2 * wall
-    rail_x = CASE_WIDTH / 2.0 - wall + overlap - ACCESSORY_RAIL_PROTRUSION / 2.0
-    for side_label, x in (("Left", -rail_x), ("Right", rail_x)):
-        for rail_label, y in (("Inner", inner_rail_y), ("Outer", outer_rail_y)):
-            rail = add_box(
-                f"Accessory_{side_label}_{rail_label}_Cover_Rail",
-                (ACCESSORY_RAIL_PROTRUSION, wall, rail_height),
-                location=(x, y, 0.0),
-            )
-            unite(enclosure, rail)
-
-    cover_width = CASE_WIDTH - 2 * wall - 2 * ACCESSORY_COVER_CLEARANCE
-    groove_depth = ACCESSORY_COVER_THICKNESS + 2 * ACCESSORY_COVER_CLEARANCE
-    stop_z = -CASE_HEIGHT / 2.0 + wall + ACCESSORY_COVER_STOP_HEIGHT / 2.0
-    stop = add_box(
-        "Accessory_Cover_Bottom_Stop",
-        (cover_width, groove_depth, ACCESSORY_COVER_STOP_HEIGHT),
-        location=(0.0, cover_y, stop_z),
-    )
-    unite(enclosure, stop)
-
     for module in ACCESSORY_MODULES:
         add_module_corner_holders(enclosure, module, rear_y)
 
-    # Separate printable cover, shown in its installed position.
-    cover_bottom_z = stop_z + ACCESSORY_COVER_STOP_HEIGHT / 2.0
-    cover_height = (
-        CASE_HEIGHT
-        - 2 * wall
-        - ACCESSORY_COVER_STOP_HEIGHT
-        - ACCESSORY_COVER_CLEARANCE
-    )
-    cover_z = cover_bottom_z + cover_height / 2.0
+    # The panel matches the 60 x 60 mm outline exactly. Its rear face is one
+    # uninterrupted plane, while all retention geometry stays inside.
     cover = add_box(
-        "Accessory_Sliding_Cover",
-        (cover_width, ACCESSORY_COVER_THICKNESS, cover_height),
-        location=(0.0, cover_y, cover_z),
+        "Accessory_Flush_Snap_Cover",
+        (CASE_WIDTH, ACCESSORY_COVER_THICKNESS, CASE_HEIGHT),
+        location=(0.0, cover_y, 0.0),
     )
-    pull_tab = add_box(
-        "Accessory_Cover_Pull_Tab",
-        (
-            ACCESSORY_COVER_PULL_TAB_WIDTH,
-            ACCESSORY_COVER_THICKNESS,
-            ACCESSORY_COVER_PULL_TAB_HEIGHT,
-        ),
-        location=(
-            0.0,
-            cover_y,
-            cover_bottom_z + cover_height + ACCESSORY_COVER_PULL_TAB_HEIGHT / 2.0,
-        ),
-    )
-    unite(cover, pull_tab)
+
+    if ENABLE_FLUSH_SNAP_COVER:
+        clip_overlap = 0.25
+        hook_overlap = 0.20
+        top_inner_z = CASE_HEIGHT / 2.0 - wall
+        clip_y = cover_front_y - (
+            ACCESSORY_SNAP_CLIP_LENGTH - clip_overlap
+        ) / 2.0
+        hook_y = (
+            cover_front_y
+            - ACCESSORY_SNAP_CLIP_LENGTH
+            + ACCESSORY_SNAP_HOOK_LENGTH / 2.0
+        )
+        for side_label, side_sign in (("Bottom", -1.0), ("Top", 1.0)):
+            clip_z = side_sign * (
+                top_inner_z - ACCESSORY_SNAP_CLIP_THICKNESS / 2.0
+            )
+            hook_z = side_sign * (
+                top_inner_z
+                + (ACCESSORY_SNAP_HOOK_PROJECTION - hook_overlap) / 2.0
+            )
+            beam = add_box(
+                f"Cover_{side_label}_Hidden_Clip",
+                (
+                    ACCESSORY_SNAP_CLIP_WIDTH,
+                    ACCESSORY_SNAP_CLIP_LENGTH + clip_overlap,
+                    ACCESSORY_SNAP_CLIP_THICKNESS,
+                ),
+                location=(ACCESSORY_SNAP_CLIP_X_CENTRE, clip_y, clip_z),
+            )
+            unite(cover, beam)
+
+            hook = add_box(
+                f"Cover_{side_label}_Snap_Hook",
+                (
+                    ACCESSORY_SNAP_CLIP_WIDTH,
+                    ACCESSORY_SNAP_HOOK_LENGTH,
+                    ACCESSORY_SNAP_HOOK_PROJECTION + hook_overlap,
+                ),
+                location=(ACCESSORY_SNAP_CLIP_X_CENTRE, hook_y, hook_z),
+            )
+            apply_bevel(
+                hook,
+                min(0.20, ACCESSORY_SNAP_HOOK_PROJECTION / 3.0),
+                segments=2,
+            )
+            unite(cover, hook)
+
+            slot = add_box(
+                f"Accessory_{side_label}_Snap_Slot",
+                (
+                    ACCESSORY_SNAP_CLIP_WIDTH
+                    + 2 * ACCESSORY_SNAP_SLOT_CLEARANCE,
+                    ACCESSORY_SNAP_HOOK_LENGTH
+                    + 2 * ACCESSORY_SNAP_SLOT_CLEARANCE,
+                    wall + 2 * BOOLEAN_MARGIN,
+                ),
+                location=(
+                    ACCESSORY_SNAP_CLIP_X_CENTRE,
+                    hook_y,
+                    side_sign * (CASE_HEIGHT / 2.0 - wall / 2.0),
+                ),
+            )
+            subtract(enclosure, slot)
 
     # Vent the cover over the speaker with a centered staggered circular grille.
     if ENABLE_SPEAKER_VENTS:
@@ -652,76 +710,11 @@ def build_back_accessory_layer(enclosure, rear_y: float):
             )
         subtract_many(cover, speaker_vent_cutters, "Speaker_Vent_Pattern")
 
-    if ENABLE_ACCESSORY_COVER_LOCK:
-        cover_top_z = cover_bottom_z + cover_height
-
-        # Two slots isolate a flexible center tongue while retaining it at the
-        # bottom. Pressing this flap inward releases its rear-facing snap hook.
-        slot_start_z = cover_top_z - ACCESSORY_LOCK_FLAP_LENGTH
-        slot_end_z = cover_top_z + BOOLEAN_MARGIN
-        slot_height = slot_end_z - slot_start_z
-        slot_x = (
-            ACCESSORY_LOCK_FLAP_WIDTH / 2.0
-            + ACCESSORY_LOCK_SLOT_WIDTH / 2.0
-        )
-        for label, x in (("Left", -slot_x), ("Right", slot_x)):
-            slot = add_box(
-                f"Accessory_Lock_Flap_{label}_Relief",
-                (
-                    ACCESSORY_LOCK_SLOT_WIDTH,
-                    ACCESSORY_COVER_THICKNESS + 2 * BOOLEAN_MARGIN,
-                    slot_height,
-                ),
-                location=(0.0 + x, cover_y, (slot_start_z + slot_end_z) / 2.0),
-            )
-            subtract(cover, slot)
-
-        catch_bottom_z = cover_top_z - ACCESSORY_LOCK_CATCH_HEIGHT
-        hook_top_z = catch_bottom_z - ACCESSORY_LOCK_VERTICAL_CLEARANCE
-        hook = add_box(
-            "Accessory_Cover_Snap_Hook",
-            (
-                ACCESSORY_LOCK_FLAP_WIDTH,
-                ACCESSORY_LOCK_HOOK_DEPTH,
-                ACCESSORY_LOCK_HOOK_HEIGHT,
-            ),
-            location=(
-                0.0,
-                cover_y
-                + ACCESSORY_COVER_THICKNESS / 2.0
-                + ACCESSORY_LOCK_HOOK_DEPTH / 2.0
-                - ACCESSORY_LOCK_HOOK_EMBED,
-                hook_top_z - ACCESSORY_LOCK_HOOK_HEIGHT / 2.0,
-            ),
-        )
-        apply_bevel(
-            hook,
-            min(0.30, ACCESSORY_LOCK_HOOK_DEPTH / 3.0),
-            segments=2,
-        )
-        unite(cover, hook)
-
-        # A full-width header joins both outer rails and catches the hook when
-        # the installed cover is pulled upward.
-        catch = add_box(
-            "Accessory_Cover_Lock_Catch_Bar",
-            (
-                CASE_WIDTH - 2 * wall,
-                wall,
-                ACCESSORY_LOCK_CATCH_HEIGHT,
-            ),
-            location=(
-                0.0,
-                outer_rail_y,
-                cover_top_z - ACCESSORY_LOCK_CATCH_HEIGHT / 2.0,
-            ),
-        )
-        unite(enclosure, catch)
-
     cover["print_separately"] = True
-    cover["slide_direction"] = "Insert from +Z (top), slide toward -Z"
-    cover["clearance_mm"] = ACCESSORY_COVER_CLEARANCE
-    cover["snap_flap_lock_enabled"] = ENABLE_ACCESSORY_COVER_LOCK
+    cover["installation"] = "Press straight toward -Y until both clips snap"
+    cover["release"] = "Press clips inward through the top and bottom slots"
+    cover["flush_snap_clip_count"] = 2 if ENABLE_FLUSH_SNAP_COVER else 0
+    cover["gps_opening"] = "None; rear panel remains intact"
     cover["speaker_vent_pattern"] = (
         f"{SPEAKER_VENT_COLUMNS} x {SPEAKER_VENT_ROWS}, "
         f"diameter {SPEAKER_VENT_HOLE_DIAMETER} mm"
@@ -771,10 +764,14 @@ def validate_parameters() -> None:
         screw_gap = CASE_DEPTH - REAR_WALL - SCREW_MOUNT_DEPTH_FROM_FRONT
         if screw_gap <= 0:
             raise ValueError("Rear wall reaches or crosses the screw mounts.")
+        if not 0 <= SCREW_WELL_DEPTH_REDUCTION < screw_gap:
+            raise ValueError("Screw-well depth reduction consumes the bump.")
         if SCREW_WELL_INNER_DIAMETER <= SCREW_HOLE_DIAMETER:
             raise ValueError("Screw well must be wider than its through-hole.")
         if SCREW_WELL_FLOOR_THICKNESS >= (
-            CASE_DEPTH - SCREW_MOUNT_DEPTH_FROM_FRONT
+            CASE_DEPTH
+            - SCREW_MOUNT_DEPTH_FROM_FRONT
+            - SCREW_WELL_DEPTH_REDUCTION
         ):
             raise ValueError("Screw-well floor consumes the complete recess.")
     if USB_C_OPENING_WIDTH + 2 * USB_C_TUNNEL_WALL >= CASE_WIDTH:
@@ -810,19 +807,60 @@ def validate_parameters() -> None:
     ):
         raise ValueError("Rear support-access hole diameter is invalid.")
     if ENABLE_BACK_ACCESSORY_LAYER:
-        if ACCESSORY_INTERNAL_DEPTH < ACCESSORY_MAX_HEIGHT:
-            raise ValueError("Accessory chamber is shallower than its modules.")
-        if ACCESSORY_COVER_THICKNESS + 2 * ACCESSORY_COVER_CLEARANCE <= 0:
-            raise ValueError("Accessory cover groove is invalid.")
-        if ENABLE_ACCESSORY_COVER_LOCK and (
-            ACCESSORY_LOCK_FLAP_WIDTH <= 0
-            or ACCESSORY_LOCK_FLAP_LENGTH <= ACCESSORY_LOCK_HOOK_HEIGHT
-            or ACCESSORY_LOCK_SLOT_WIDTH <= 0
-            or ACCESSORY_LOCK_HOOK_EMBED <= 0
-            or ACCESSORY_LOCK_HOOK_EMBED >= ACCESSORY_LOCK_HOOK_DEPTH
-            or ACCESSORY_LOCK_HOOK_EMBED > ACCESSORY_COVER_THICKNESS
+        if ACCESSORY_INTERNAL_DEPTH <= ACCESSORY_WALL_THICKNESS:
+            raise ValueError("Accessory depth reduction consumes the chamber.")
+        if not 0 <= ACCESSORY_DEPTH_REDUCTION < ACCESSORY_MAX_HEIGHT:
+            raise ValueError("Accessory depth reduction is invalid.")
+        if ACCESSORY_COVER_THICKNESS <= 0:
+            raise ValueError("Accessory cover thickness is invalid.")
+        if ENABLE_FLUSH_SNAP_COVER and (
+            ACCESSORY_SNAP_CLIP_LENGTH <= 0
+            or ACCESSORY_SNAP_CLIP_LENGTH >= ACCESSORY_INTERNAL_DEPTH
+            or ACCESSORY_SNAP_CLIP_THICKNESS <= 0
+            or ACCESSORY_SNAP_CLIP_WIDTH <= 0
+            or ACCESSORY_SNAP_HOOK_PROJECTION <= 0
+            or ACCESSORY_SNAP_HOOK_PROJECTION > ACCESSORY_WALL_THICKNESS
+            or ACCESSORY_SNAP_HOOK_LENGTH <= 0
+            or ACCESSORY_SNAP_SLOT_CLEARANCE < 0
+            or abs(ACCESSORY_SNAP_CLIP_X_CENTRE)
+            + ACCESSORY_SNAP_CLIP_WIDTH / 2.0
+            >= CASE_WIDTH / 2.0
         ):
-            raise ValueError("Accessory cover-lock dimensions are invalid.")
+            raise ValueError("Flush snap-cover dimensions are invalid.")
+        if ENABLE_FLUSH_SNAP_COVER:
+            battery = next(
+                module for module in ACCESSORY_MODULES
+                if module.name.startswith("Battery")
+            )
+            left_modules = (
+                module for module in ACCESSORY_MODULES
+                if module.name.startswith(("GPS", "Speaker"))
+            )
+            left_module_right_edge = max(
+                module.x + module.width / 2.0 for module in left_modules
+            )
+            battery_left_edge = battery.x - battery.width / 2.0
+            clip_left_edge = (
+                ACCESSORY_SNAP_CLIP_X_CENTRE
+                - ACCESSORY_SNAP_CLIP_WIDTH / 2.0
+            )
+            clip_right_edge = (
+                ACCESSORY_SNAP_CLIP_X_CENTRE
+                + ACCESSORY_SNAP_CLIP_WIDTH / 2.0
+            )
+            if not (
+                left_module_right_edge < clip_left_edge
+                and clip_right_edge < battery_left_edge
+            ):
+                raise ValueError("Top/bottom snap clips overlap a module footprint.")
+        if (
+            ENABLE_GPS_MIDDLE_PANEL_OPENING
+            and not (
+                0 < GPS_MIDDLE_PANEL_OPENING_SIZE <= 24.0
+                and GPS_SCREW_KEEP_OUT_MARGIN >= 0
+            )
+        ):
+            raise ValueError("GPS middle-panel window parameters are invalid.")
         if ENABLE_SPEAKER_VENTS and (
             SPEAKER_VENT_HOLE_DIAMETER <= 0
             or SPEAKER_VENT_PITCH <= SPEAKER_VENT_HOLE_DIAMETER
@@ -887,15 +925,7 @@ def build_enclosure():
         apply_bevel(cavity, inner_corner_radius, segments=6)
     subtract(enclosure, cavity)
 
-    # Front display entry opening through only the thin outer shell.
     front_y = -CASE_DEPTH / 2.0
-    display_entry_cutter = add_y_cylinder(
-        "Display_Entry_Opening",
-        DISPLAY_POCKET_DIAMETER,
-        FRONT_WALL + 2 * BOOLEAN_MARGIN,
-        location=(0.0, front_y, 0.0),
-    )
-    subtract(enclosure, display_entry_cutter)
 
     # Form a concentric recessed cup directly from the front opening. A thin
     # circular sleeve runs inward from the surface and terminates in an annular
@@ -904,8 +934,13 @@ def build_enclosure():
     support_outer_diameter = (
         DISPLAY_POCKET_DIAMETER + 2 * DISPLAY_SUPPORT_WALL_THICKNESS
     )
-    sleeve_depth = DISPLAY_RECESS_DEPTH + DISPLAY_PLATFORM_THICKNESS
-    sleeve_y = front_y + sleeve_depth / 2.0
+    # The sleeve starts inside the front wall, not on its outer face: a
+    # coplanar front face makes the union non-manifold. The final pocket cut
+    # below opens the front surface.
+    sleeve_start_y = front_y + FRONT_WALL / 2.0
+    sleeve_end_y = front_y + DISPLAY_RECESS_DEPTH + DISPLAY_PLATFORM_THICKNESS
+    sleeve_depth = sleeve_end_y - sleeve_start_y
+    sleeve_y = (sleeve_start_y + sleeve_end_y) / 2.0
     sleeve = add_y_cylinder(
         "Display_Recess_Sleeve",
         support_outer_diameter,
@@ -994,12 +1029,15 @@ def build_enclosure():
 
     if ENABLE_RECESSED_SCREW_WELLS:
         screw_mount_y = front_y + SCREW_MOUNT_DEPTH_FROM_FRONT
-        screw_cup_depth = rear_y - screw_mount_y
-        screw_cup_y = (rear_y + screw_mount_y) / 2.0
+        screw_cup_front_y = screw_mount_y + SCREW_WELL_DEPTH_REDUCTION
+        screw_cup_depth = rear_y - screw_cup_front_y
+        screw_cup_y = (rear_y + screw_cup_front_y) / 2.0
         screw_cup_outer_diameter = (
             SCREW_WELL_INNER_DIAMETER + 2 * SCREW_WELL_WALL_THICKNESS
         )
-        well_floor_rear_y = screw_mount_y + SCREW_WELL_FLOOR_THICKNESS
+        well_floor_rear_y = (
+            screw_cup_front_y + SCREW_WELL_FLOOR_THICKNESS
+        )
         well_cut_end_y = rear_y + BOOLEAN_MARGIN
         well_cut_depth = well_cut_end_y - well_floor_rear_y
         screw_cut_start_y = screw_mount_y - BOOLEAN_MARGIN
@@ -1210,12 +1248,22 @@ def build_enclosure():
         )
     enclosure["recessed_screw_wells_enabled"] = ENABLE_RECESSED_SCREW_WELLS
     if ENABLE_RECESSED_SCREW_WELLS:
+        enclosure["screw_bump_depth_reduction_mm"] = (
+            SCREW_WELL_DEPTH_REDUCTION
+        )
+        enclosure["screw_bump_inward_projection_mm"] = (
+            CASE_DEPTH
+            - REAR_WALL
+            - SCREW_MOUNT_DEPTH_FROM_FRONT
+            - SCREW_WELL_DEPTH_REDUCTION
+        )
         enclosure["screw_mount_gap_mm"] = (
             CASE_DEPTH - REAR_WALL - SCREW_MOUNT_DEPTH_FROM_FRONT
         )
         enclosure["screw_head_recess_depth_mm"] = (
             CASE_DEPTH
             - SCREW_MOUNT_DEPTH_FROM_FRONT
+            - SCREW_WELL_DEPTH_REDUCTION
             - SCREW_WELL_FLOOR_THICKNESS
         )
     if ENABLE_USB_C_TUNNEL:
@@ -1223,6 +1271,13 @@ def build_enclosure():
             f"length {USB_C_TUNNEL_LENGTH}, wall {USB_C_TUNNEL_WALL}"
         )
     enclosure["back_accessory_layer_enabled"] = ENABLE_BACK_ACCESSORY_LAYER
+    enclosure["rear_cover_mechanism"] = (
+        "Flush internal top-and-bottom two-clip snap fit"
+    )
+    enclosure["outer_faces_planar"] = True
+    enclosure["gps_middle_panel_opening_enabled"] = (
+        ENABLE_GPS_MIDDLE_PANEL_OPENING
+    )
     enclosure["base_air_vents_enabled"] = ENABLE_BASE_AIR_VENTS
     enclosure["base_mic_ports_enabled"] = ENABLE_BASE_MIC_PORTS
     enclosure["accessory_bottom_mic_vents_enabled"] = (
@@ -1230,6 +1285,7 @@ def build_enclosure():
     )
     if ENABLE_BACK_ACCESSORY_LAYER:
         enclosure["accessory_internal_depth_mm"] = ACCESSORY_INTERNAL_DEPTH
+        enclosure["accessory_depth_reduction_mm"] = ACCESSORY_DEPTH_REDUCTION
         enclosure["accessory_layout"] = "Battery left; GPS upper-right; speaker lower-right"
     enclosure["notes"] = "Mic centres are drawing-scaled estimates; test fit."
     return enclosure, cover
@@ -1241,7 +1297,7 @@ def export_outputs(enclosure, cover, output_dir: str):
     destination.mkdir(parents=True, exist_ok=True)
     blend_path = destination / "esp32_s3_touch_amoled_1_75_enclosure.blend"
     stl_path = destination / "esp32_s3_touch_amoled_1_75_enclosure.stl"
-    cover_stl_path = destination / "esp32_s3_touch_amoled_1_75_sliding_cover.stl"
+    cover_stl_path = destination / "esp32_s3_touch_amoled_1_75_flush_cover.stl"
 
     bpy.ops.object.select_all(action="DESELECT")
     enclosure.select_set(True)
@@ -1293,7 +1349,7 @@ def main() -> None:
         print(f"Saved Blender file: {blend_path}")
         print(f"Exported STL: {stl_path}")
         if cover_stl_path is not None:
-            print(f"Exported sliding cover STL: {cover_stl_path}")
+            print(f"Exported flush snap cover STL: {cover_stl_path}")
 
 
 # Blender's VS Code extension executes scripts with runpy.run_path(), which
