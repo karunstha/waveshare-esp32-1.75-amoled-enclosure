@@ -75,8 +75,8 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
     clearance is now 0.10 mm to fit the 12.70 mm hardware in the 14 mm section.
 -   `DISPLAY_POCKET_DIAMETER`: shallow recess for the Ø48.96 mm display.
 -   `DISPLAY_RECESS_DEPTH`: 2.05 mm, matching the protruding display stack.
--   `BOARD_OPENING_DIAMETER`: 46.30 mm through-opening for the Ø46.00 mm PCB,
-    providing 0.15 mm radial clearance.
+-   `BOARD_OPENING_DIAMETER`: 46.70 mm through-opening for the Ø46.00 mm PCB,
+    providing 0.35 mm radial clearance.
 -   `DISPLAY_PLATFORM_THICKNESS` and `DISPLAY_SUPPORT_WALL_THICKNESS`: both
     follow the 1.20 mm enclosure thickness. The sleeve and flat ring are fused
     into one watertight display cup before it is joined to the shell, preventing
@@ -96,8 +96,8 @@ All measurements use millimetres and are grouped under `USER PARAMETERS`.
 -   `USB_C_OPENING_WIDTH`, `USB_C_OPENING_DEPTH`, and
     `USB_C_CENTRE_FROM_FRONT`: STEP-derived bottom-side USB-C geometry. The
     receptacle envelope is 9.58 × 4.16 mm. The cutout is now 11.58 × 6.16 mm,
-    providing 1.0 mm clearance on every side. Its center is 6.99 mm behind the
-    display after moving it toward the display by half the opening depth. The
+    providing 1.0 mm clearance on every side. Its center is 9.39 mm behind the
+    display after the latest 2.40 mm move toward the base/rear. The
     cutout uses the connector's rounded capsule profile rather than a box.
 -   `USB_C_TUNNEL_LENGTH` and `USB_C_TUNNEL_WALL`: internal guide sleeve
     length and wall thickness.

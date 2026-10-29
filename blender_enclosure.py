@@ -60,8 +60,9 @@ DISPLAY_OUTER_DIAMETER = 48.96
 BOARD_OUTER_DIAMETER = 46.00
 DISPLAY_RECESS_DEPTH = 2.05
 DISPLAY_DIAMETRAL_CLEARANCE = 0.40
-# Reduced by 0.20 mm diametrically, i.e. 0.10 mm on the inner radius.
-BOARD_DIAMETRAL_CLEARANCE = 0.30
+# Increased by 0.20 mm diametrically from the original 46.50 mm opening,
+# i.e. 0.10 mm added to the inner radius.
+BOARD_DIAMETRAL_CLEARANCE = 0.70
 DISPLAY_POCKET_DIAMETER = DISPLAY_OUTER_DIAMETER + DISPLAY_DIAMETRAL_CLEARANCE
 BOARD_OPENING_DIAMETER = BOARD_OUTER_DIAMETER + BOARD_DIAMETRAL_CLEARANCE
 
@@ -179,9 +180,11 @@ USB_C_RECEPTACLE_DEPTH = 4.16
 USB_C_CUTOUT_CLEARANCE = 2.00
 USB_C_OPENING_WIDTH = USB_C_RECEPTACLE_WIDTH + USB_C_CUTOUT_CLEARANCE
 USB_C_OPENING_DEPTH = USB_C_RECEPTACLE_DEPTH + USB_C_CUTOUT_CLEARANCE
-# Start from the previous 10.07 mm location and move toward the display by half
-# of the finished opening depth (6.16 / 2 = 3.08 mm).
-USB_C_CENTRE_FROM_FRONT = 10.07 - USB_C_OPENING_DEPTH / 2.0
+# Start from 10.07 mm, move toward the display by half the finished opening
+# depth, then move 2.40 mm back down toward the base/rear.
+USB_C_CENTRE_FROM_FRONT = (
+    10.07 - USB_C_OPENING_DEPTH / 2.0 + 2.40
+)
 ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
