@@ -15,6 +15,7 @@ from .display import cut_display_cable_reliefs
 from .fit_check import build_dummy_esp32
 from .mesh import clean_mesh, make_material
 from .patterns import staggered_lattice_offsets
+from .switches import build_side_switches
 from .primitives import (
     add_box,
     add_x_cylinder,
@@ -297,6 +298,20 @@ def _cut_base_vents(enclosure, front_y: float) -> None:
                     cfg.BASE_AIR_VENT_PITCH,
                 )
             ):
+                # Reserve a solid patch around each switch guide. A vent here
+                # would open into the button passage or thin its wall.
+                if cfg.ENABLE_SIDE_SWITCH_BUTTONS:
+                    vent_y = main_side_vent_y + y_offset
+                    button_y = front_y + cfg.SWITCH_CENTRE_FROM_FRONT
+                    keep_out_radius = (
+                        (cfg.SWITCH_GUIDE_OUTER_DIAMETER
+                         + cfg.BASE_AIR_VENT_DIAMETER) / 2.0
+                        + cfg.SWITCH_VENT_KEEP_OUT
+                    )
+                    if ((vent_y - button_y) ** 2
+                            + (z_offset - cfg.SWITCH_CENTRE_Z) ** 2
+                            < keep_out_radius ** 2):
+                        continue
                 airflow_cutters.append(
                     add_x_cylinder(
                         f"Base_{side_label}_Air_Vent_{index}",
@@ -468,6 +483,7 @@ def build_enclosure():
     rear_y = cfg.CASE_DEPTH / 2.0
     _cut_rear_features(enclosure, front_y, rear_y)
     usb_y = _cut_usb_c(enclosure, front_y)
+    plungers = build_side_switches(enclosure, front_y)
     _cut_base_vents(enclosure, front_y)
     _cut_base_mic_ports(enclosure, usb_y)
 
@@ -481,10 +497,14 @@ def build_enclosure():
     clean_mesh(enclosure)
     if cover is not None:
         clean_mesh(cover)
+    for plunger in plungers:
+        clean_mesh(plunger)
     material = make_material()
     enclosure.data.materials.append(material)
     if cover is not None:
         cover.data.materials.append(material)
+    for plunger in plungers:
+        plunger.data.materials.append(material)
 
     # Improve viewport presentation without affecting exported geometry.
     bpy.ops.object.select_all(action="DESELECT")
@@ -496,4 +516,4 @@ def build_enclosure():
         # Compatibility with Blender 3.x.
         bpy.ops.object.shade_smooth()
     _annotate_enclosure(enclosure, dummy_objects)
-    return enclosure, cover
+    return enclosure, cover, plungers

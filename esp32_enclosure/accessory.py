@@ -252,7 +252,7 @@ def build_back_accessory_layer(enclosure, rear_y: float):
 
     if cfg.ENABLE_FLUSH_SNAP_COVER:
         clip_overlap = 0.25
-        hook_overlap = 0.20
+        hook_overlap = 0.35
         top_inner_z = cfg.CASE_HEIGHT / 2.0 - wall
         clip_y = cover_front_y - (
             cfg.ACCESSORY_SNAP_CLIP_LENGTH - clip_overlap
@@ -264,7 +264,9 @@ def build_back_accessory_layer(enclosure, rear_y: float):
         )
         for side_label, side_sign in (("Bottom", -1.0), ("Top", 1.0)):
             clip_z = side_sign * (
-                top_inner_z - cfg.ACCESSORY_SNAP_CLIP_THICKNESS / 2.0
+                top_inner_z
+                - cfg.ACCESSORY_SNAP_WALL_CLEARANCE
+                - cfg.ACCESSORY_SNAP_CLIP_THICKNESS / 2.0
             )
             hook_z = side_sign * (
                 top_inner_z
@@ -281,22 +283,31 @@ def build_back_accessory_layer(enclosure, rear_y: float):
             )
             unite(cover, beam)
 
-            # A wider, thicker root spreads bending stress into the panel while
-            # leaving the long section of the clip flexible enough to release.
+            # Put all of the extra root thickness on the chamber side of the
+            # beam. Centering it on the beam would protrude into the tray wall
+            # and prevent the cover from seating fully.
+            root_thickness = (
+                cfg.ACCESSORY_SNAP_CLIP_THICKNESS
+                + cfg.ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS
+            )
+            root_z = side_sign * (
+                top_inner_z
+                - cfg.ACCESSORY_SNAP_WALL_CLEARANCE
+                - root_thickness / 2.0
+            )
             root = add_box(
                 f"Cover_{side_label}_Clip_Root_Reinforcement",
                 (
                     cfg.ACCESSORY_SNAP_CLIP_WIDTH
                     + cfg.ACCESSORY_SNAP_ROOT_EXTRA_WIDTH,
                     cfg.ACCESSORY_SNAP_ROOT_DEPTH + clip_overlap,
-                    cfg.ACCESSORY_SNAP_CLIP_THICKNESS
-                    + cfg.ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS,
+                    root_thickness,
                 ),
                 location=(
                     cfg.ACCESSORY_SNAP_CLIP_X_CENTRE,
                     cover_front_y
                     - (cfg.ACCESSORY_SNAP_ROOT_DEPTH - clip_overlap) / 2.0,
-                    clip_z,
+                    root_z,
                 ),
             )
             unite(cover, root)
@@ -369,7 +380,11 @@ def build_back_accessory_layer(enclosure, rear_y: float):
     cover["flush_snap_clip_count"] = 2 if cfg.ENABLE_FLUSH_SNAP_COVER else 0
     cover["alignment_skirt_enabled"] = cfg.ENABLE_COVER_ALIGNMENT_SKIRT
     cover["alignment_rail_depth_mm"] = cfg.ACCESSORY_ALIGNMENT_SKIRT_DEPTH
-    cover["reinforced_clip_thickness_mm"] = cfg.ACCESSORY_SNAP_CLIP_THICKNESS
+    cover["clip_beam_thickness_mm"] = cfg.ACCESSORY_SNAP_CLIP_THICKNESS
+    cover["reinforced_clip_root_thickness_mm"] = (
+        cfg.ACCESSORY_SNAP_CLIP_THICKNESS
+        + cfg.ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS
+    )
     cover["gps_opening"] = "None; rear panel remains intact"
     cover["speaker_vent_pattern"] = (
         f"{cfg.SPEAKER_VENT_COLUMNS} x {cfg.SPEAKER_VENT_ROWS}, "

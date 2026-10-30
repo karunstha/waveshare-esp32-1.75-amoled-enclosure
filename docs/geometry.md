@@ -25,6 +25,7 @@ Blender axes map to the hardware drawing. All dimensions are in millimetres.
 | USB-C receptacle envelope | 9.58 × 4.16 | STEP bounding box |
 | USB-C center depth | 8.07 from front | STEP bounding box |
 | Rear drawing screw centers | (−14.70, ±13.75), (+20.50, 0) | Hardware drawing |
+| Upper KEY1/KEY2 switch bodies | X ≈ ±11.3, Z ≈ +17.1; center depth ≈ 7.6 from front | STEP assembly envelopes, rotated into Blender axes |
 
 The simplified hardware collection represents the major measured envelopes.
 It is a visual aid, not an exact copy of every STEP solid.
@@ -37,6 +38,15 @@ It is a visual aid, not an exact copy of every STEP solid.
 - Screw through-hole: Ø2.40 for M2; cup outside diameter: Ø7.40.
 - USB-C opening: 11.58 × 6.16, centered 7.99 mm behind the front face.
 - Cover locating rail clearance to the chamber wall: 0.20 mm.
+- Rear-cover clips: 1.10 mm flexible beams with 1.70 mm thick, 2.0 mm long
+  roots. Root reinforcement grows inward with 0.15 mm clearance to the tray
+  wall; only the hooks enter the latch slots.
+- Side button guide: Ø4.6 outer, Ø3.2 bore; Ø2.8 plunger and Ø1.8 tip.
+- Side button tips nominally touch the switch body's outer envelope. This is
+  a tunable first-print position because the exact moving contact face is not
+  specified by the enclosure drawing.
+- The chosen contact target is X = ±13.6 at Z = 17.1. The whole rotated switch
+  body reaches X = ±13.8 elsewhere, so the centerline cross-section matters.
 
 These allowances are design choices for a first print. They are not claims
 about the tolerance of a particular printer or material.
@@ -56,11 +66,14 @@ and GPS dimensions before a full print.
 
 ## Checks before publishing or printing
 
-1. Run the generator and inspect both STL files in a slicer. Check that the
-   display seat, rear wall, screw cups, and snap clips remain connected.
+1. Run the generator and inspect all four STL files in a slicer. Check that the
+   display seat, rear wall, screw cups, guides, plungers, and snap clips remain
+   connected.
 2. Hide/show `FIT_CHECK_DUMMY_ESP32` in Blender to inspect interference.
 3. Test the USB-C opening with the actual cable head, not just the receptacle.
 4. Measure the two microphone acoustic-port positions on your board. Their
    drawing centers were not explicitly dimensioned.
 5. Print a small fit test in the intended orientation and adjust the vertical
    radius compensation from the measured result.
+6. Test each side button with the board installed. Adjust `SWITCH_REST_GAP`
+   or tip length if a switch is preloaded or cannot be pressed fully.

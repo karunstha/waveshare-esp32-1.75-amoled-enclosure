@@ -6,9 +6,9 @@ round display board. The whole model is generated from Python inside Blender,
 so every dimension and print allowance is a named constant you can change and
 regenerate. No Blender project file is needed.
 
-| Front | Rear |
-| :---: | :---: |
-| ![Front view of the enclosure](docs/images/blender-front.png) | ![Rear view of the enclosure](docs/images/blender-back.png) |
+| Front | Rear | Side buttons |
+| :---: | :---: | :---: |
+| ![Front view of the enclosure](docs/images/blender-front.png) | ![Rear view of the enclosure](docs/images/blender-back.png) | ![Side button view of the enclosure](docs/images/blender-side-buttons.png) |
 
 > **Just want to print it?** Download the ready-made STLs from
 > [`models/`](models/) and read the [printing and assembly guide](docs/printing-and-assembly.md).
@@ -27,6 +27,8 @@ regenerate. No Blender project file is needed.
 - Separate flat rear cover with a speaker grille, internal locating rails, and
   two snap clips. The outside is flush, with no raised latches.
 - Staggered airflow vents in the sides and top.
+- Two guided, recessed side buttons for the board's upper switches. Each
+  plunger is a separate printable part installed from inside the shell.
 - An optional simplified hardware model for checking fit in Blender. It is
   never exported to STL.
 
@@ -34,8 +36,7 @@ regenerate. No Blender project file is needed.
 
 ### Option A: print the supplied STLs
 
-1. Take `esp32_s3_touch_amoled_1_75_enclosure.stl` and
-   `esp32_s3_touch_amoled_1_75_flush_cover.stl` from [`models/`](models/).
+1. Take the shell, flush cover, and both button STLs from [`models/`](models/).
 2. Follow [docs/printing-and-assembly.md](docs/printing-and-assembly.md).
 3. Print a small fit test first. Printer tolerances vary.
 
@@ -59,6 +60,8 @@ output/
   esp32_s3_touch_amoled_1_75_enclosure.blend
   esp32_s3_touch_amoled_1_75_enclosure.stl
   esp32_s3_touch_amoled_1_75_flush_cover.stl
+  esp32_s3_touch_amoled_1_75_left_button.stl
+  esp32_s3_touch_amoled_1_75_right_button.stl
 ```
 
 Use `--output-dir PATH` for another location. Relative paths resolve from the
@@ -82,6 +85,10 @@ the **USER PARAMETERS** section (millimetres), and rerun. The most useful ones:
 | `SCREW_WELL_DEPTH_REDUCTION` | 1.0 | Leaves 0.9 mm inward screw risers |
 | `USB_C_CENTRE_FROM_FRONT` | 7.99 | USB-C cutout position from the display face |
 | `ACCESSORY_INTERNAL_DEPTH` | 10.8 | Space from middle wall to rear cover |
+| `ACCESSORY_SNAP_CLIP_THICKNESS` | 1.1 | Flexible rear-cover clip beam |
+| `ACCESSORY_SNAP_WALL_CLEARANCE` | 0.15 | Gap between clips and tray walls |
+| `SWITCH_REST_GAP` | 0.0 | Button tip gap to the measured switch envelope |
+| `ENABLE_SIDE_SWITCH_BUTTONS` | `True` | Generate the two guides and loose plungers |
 | `ENABLE_*` | varies | Switch features such as vents, tunnel, cover clips, fit-check model |
 
 The script validates parameters before building and raises a descriptive error
@@ -94,7 +101,7 @@ See [docs/development.md](docs/development.md) for the code layout.
 blender --background --python scripts/render_preview.py
 ```
 
-This regenerates `docs/images/blender-front.png` and `blender-back.png`.
+This regenerates the front, rear, and side-button images in `docs/images/`.
 
 ## Things to check before you print
 

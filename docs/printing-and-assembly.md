@@ -6,6 +6,8 @@
 | --- | --- |
 | `esp32_s3_touch_amoled_1_75_enclosure.stl` | Main shell with the rear component tray |
 | `esp32_s3_touch_amoled_1_75_flush_cover.stl` | Separate snap-on rear cover |
+| `esp32_s3_touch_amoled_1_75_left_button.stl` | Left switch plunger |
+| `esp32_s3_touch_amoled_1_75_right_button.stl` | Right switch plunger |
 
 Both STLs are in [`models/`](../models/) and are in millimetres.
 
@@ -19,9 +21,9 @@ These are starting points, not tested settings. Adjust for your printer.
   stretches the display pocket and PCB opening vertically to offset an
   upright print's tendency to come out slightly narrow in one axis. If you
   print in another orientation, set it to `0` and regenerate.
-- **Cover.** The clips are thin cantilevers. Orient the cover so that layer
-  lines run along the clips' length rather than across them, which is
-  weakest.
+- **Cover.** The clips have 1.1 mm flexible beams and 1.7 mm roots. Orient the
+  cover so that layer lines run along the clips' length rather than across
+  them, which is weakest.
 - **Supports.** Inspect the model in your slicer and add supports where it
   reports overhangs (the USB-C tunnel and screw risers are the likeliest).
 
@@ -31,15 +33,24 @@ and snap clips are the sensitive areas. Adjust the constants in
 
 ## Assembly
 
-1. Seat the display glass in the stepped pocket from the front, with the PCB
+1. Insert both button plungers from inside the main shell, long shaft first,
+   through the side guide tubes. The short narrow actuator tips face the board;
+   the wide shoulders stay inside the case. Keep them in place while seating
+   the board. Each external button end should sit about 0.2 mm below the side
+   surface at rest.
+2. Seat the display glass in the stepped pocket from the front, with the PCB
    passing through the smaller opening.
-2. Fasten the board with three M2 screws through the rear holes. The heads sit
+3. Fasten the board with three M2 screws through the rear holes. The heads sit
    in recessed cups; do not overtighten.
-3. Route the 8-pin, speaker and battery connectors through their rear openings.
+4. Check both buttons. The switch spring should return each plunger; if a
+   plunger rattles or stays pressed, adjust the tip gap in `config.py` and
+   regenerate. A small removable foam return pad can help if the real switch
+   face sits farther inward than the STEP envelope.
+5. Route the 8-pin, speaker and battery connectors through their rear openings.
    Check the polarity of every connector.
-4. Place the battery, GPS module and speaker into the corner holders of the
+6. Place the battery, GPS module and speaker into the corner holders of the
    rear tray.
-5. Press the cover straight in until both clips click. Its internal rails
+7. Press the cover straight in until both clips click. Its internal rails
    locate it in the tray.
 
 To open, press the clips inward through the slots in the top and bottom walls

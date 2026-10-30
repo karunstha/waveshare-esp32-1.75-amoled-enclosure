@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    enclosure, cover = build_enclosure()
+    enclosure, cover, plungers = build_enclosure()
     internal_depth = cfg.CASE_DEPTH - cfg.FRONT_WALL - cfg.REAR_WALL
     print(
         "Created ESP32 enclosure: "
@@ -49,10 +49,12 @@ def main() -> None:
         f"{cfg.BOARD_OPENING_VERTICAL_DIAMETER:.2f} mm."
     )
     if args.export:
-        blend_path, stl_path, cover_stl_path = export_outputs(
-            enclosure, cover, args.output_dir
+        blend_path, stl_path, cover_stl_path, button_paths = export_outputs(
+            enclosure, cover, plungers, args.output_dir
         )
         print(f"Saved Blender file: {blend_path}")
         print(f"Exported STL: {stl_path}")
         if cover_stl_path is not None:
             print(f"Exported flush snap cover STL: {cover_stl_path}")
+        for button_path in button_paths:
+            print(f"Exported switch button STL: {button_path}")

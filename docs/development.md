@@ -13,6 +13,7 @@ esp32_enclosure/
   patterns.py               vent-lattice maths, no Blender dependency
   primitives.py             boxes, cylinders, Boolean helpers
   display.py                display-seat cable reliefs
+  switches.py               side guide tubes and two loose plungers
   accessory.py              rear tray, module holders, snap cover
   fit_check.py              viewport-only ESP32 reference model
   mesh.py                   mesh cleanup, materials
@@ -20,7 +21,9 @@ esp32_enclosure/
   enclosure.py              build_enclosure(): main shell, in order
   export.py                 .blend and STL output
   cli.py                    argument parsing and main()
-scripts/render_preview.py   front/rear PNG renders
+scripts/render_preview.py   front/rear/side PNG renders
+scripts/inspect_mesh.py     manifold and connected-island check
+scripts/check_cover_clearance.py   cover-to-tray contact check
 ```
 
 `config.py` holds plain module-level constants. Other modules read them as
@@ -53,6 +56,8 @@ triangulation even for the same shape.
 ```sh
 blender --background --python blender_enclosure.py -- --export --output-dir models
 blender --background --python scripts/render_preview.py
+blender --background models/esp32_s3_touch_amoled_1_75_enclosure.blend --python scripts/inspect_mesh.py
+blender --background models/esp32_s3_touch_amoled_1_75_enclosure.blend --python scripts/check_cover_clearance.py
 ```
 
 Then delete the generated `.blend` from `models/` (it is git-ignored) and

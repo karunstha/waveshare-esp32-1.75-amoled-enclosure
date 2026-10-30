@@ -80,6 +80,29 @@ def validate_parameters() -> None:
         raise ValueError("USB-C guide tunnel extends beyond the rear surface.")
     if cfg.USB_C_TUNNEL_LENGTH <= cfg.SIDE_WALL:
         raise ValueError("USB-C guide tunnel must extend beyond the side wall.")
+    if cfg.ENABLE_SIDE_SWITCH_BUTTONS:
+        guide_x = cfg.SWITCH_GUIDE_INNER_X
+        guide_r = cfg.SWITCH_GUIDE_OUTER_DIAMETER / 2.0
+        switch_y = cfg.SWITCH_CENTRE_FROM_FRONT
+        if not (
+            0 < cfg.SWITCH_OUTER_FACE_X < guide_x < cfg.CASE_WIDTH / 2 - cfg.SIDE_WALL
+            and 0 <= cfg.SWITCH_REST_GAP < 1.0
+            and cfg.SWITCH_OUTER_FACE_X + cfg.SWITCH_REST_GAP
+            < guide_x - cfg.SWITCH_SHOULDER_LENGTH
+            and 0 < cfg.SWITCH_TIP_DIAMETER < cfg.SWITCH_PLUNGER_DIAMETER
+            < cfg.SWITCH_GUIDE_BORE_DIAMETER
+            < cfg.SWITCH_SHOULDER_DIAMETER
+            < cfg.SWITCH_GUIDE_OUTER_DIAMETER
+            and 0 < cfg.SWITCH_SHOULDER_LENGTH < 2.0
+            and 0 <= cfg.SWITCH_BUTTON_RECESS < 1.0
+            and 0 <= cfg.SWITCH_VENT_KEEP_OUT
+            and guide_x ** 2 + (cfg.SWITCH_CENTRE_Z - guide_r) ** 2
+            > (cfg.BOARD_OUTER_DIAMETER / 2) ** 2
+            and guide_r < switch_y < cfg.CASE_DEPTH - cfg.REAR_WALL - guide_r
+            and abs(cfg.SWITCH_CENTRE_Z) + guide_r
+            < cfg.CASE_HEIGHT / 2 - cfg.SIDE_WALL
+        ):
+            raise ValueError("Side-switch guide or plunger dimensions are invalid.")
     if cfg.ENABLE_DUMMY_ESP32 and (
         cfg.DUMMY_PCB_THICKNESS <= 0
         or cfg.DUMMY_PCB_FRONT_FROM_DISPLAY + cfg.DUMMY_PCB_THICKNESS
@@ -153,10 +176,14 @@ def validate_parameters() -> None:
             or cfg.ACCESSORY_SNAP_HOOK_PROJECTION > cfg.ACCESSORY_WALL_THICKNESS
             or cfg.ACCESSORY_SNAP_HOOK_LENGTH <= 0
             or cfg.ACCESSORY_SNAP_SLOT_CLEARANCE < 0
+            or not 0 <= cfg.ACCESSORY_SNAP_WALL_CLEARANCE < cfg.ACCESSORY_WALL_THICKNESS
             or cfg.ACCESSORY_SNAP_ROOT_DEPTH <= 0
             or cfg.ACCESSORY_SNAP_ROOT_DEPTH >= cfg.ACCESSORY_SNAP_CLIP_LENGTH
             or cfg.ACCESSORY_SNAP_ROOT_EXTRA_WIDTH < 0
             or cfg.ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS < 0
+            or cfg.ACCESSORY_SNAP_ROOT_DEPTH
+            + cfg.ACCESSORY_SNAP_HOOK_LENGTH
+            >= cfg.ACCESSORY_SNAP_CLIP_LENGTH
             or abs(cfg.ACCESSORY_SNAP_CLIP_X_CENTRE)
             + (
                 cfg.ACCESSORY_SNAP_CLIP_WIDTH

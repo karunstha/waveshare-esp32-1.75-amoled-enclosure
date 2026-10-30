@@ -107,6 +107,21 @@ def build_dummy_esp32(front_y: float) -> list:
         )
         register(component, connector_material)
 
+    # The two upper side switches are measured STEP envelopes. These wireframe
+    # boxes make the long plunger tips easy to inspect in the Blender viewport.
+    if cfg.ENABLE_SIDE_SWITCH_BUTTONS:
+        for side, sign in (("Left", -1), ("Right", 1)):
+            switch = add_box(
+                f"Dummy_{side}_Switch_STEP_Envelope",
+                (4.97, 2.20, 4.74),
+                location=(
+                    sign * 11.31,
+                    front_y + cfg.SWITCH_CENTRE_FROM_FRONT,
+                    cfg.SWITCH_CENTRE_Z,
+                ),
+            )
+            register(switch, connector_material, wire=True)
+
     boss_y = (
         front_y
         + cfg.DUMMY_SCREW_BOSS_FRONT_FROM_DISPLAY

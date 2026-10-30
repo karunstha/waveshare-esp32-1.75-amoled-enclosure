@@ -143,15 +143,18 @@ ACCESSORY_ALIGNMENT_SKIRT_DEPTH = 1.50
 ACCESSORY_ALIGNMENT_SKIRT_THICKNESS = 0.50
 ACCESSORY_ALIGNMENT_SKIRT_CLEARANCE = 0.20
 ACCESSORY_SNAP_CLIP_LENGTH = 6.0
-ACCESSORY_SNAP_CLIP_THICKNESS = 1.00
+ACCESSORY_SNAP_CLIP_THICKNESS = 1.10
 ACCESSORY_SNAP_CLIP_WIDTH = 3.40
 ACCESSORY_SNAP_HOOK_PROJECTION = 1.00
 ACCESSORY_SNAP_HOOK_LENGTH = 2.00
 ACCESSORY_SNAP_SLOT_CLEARANCE = 0.35
+# Keep the beam and root away from the tray's inner wall; only the hook enters
+# its cut slot. This avoids face-on-face friction after printing.
+ACCESSORY_SNAP_WALL_CLEARANCE = 0.15
 ACCESSORY_SNAP_CLIP_X_CENTRE = 4.0
-ACCESSORY_SNAP_ROOT_DEPTH = 1.50
+ACCESSORY_SNAP_ROOT_DEPTH = 2.00
 ACCESSORY_SNAP_ROOT_EXTRA_WIDTH = 0.20
-ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS = 0.40
+ACCESSORY_SNAP_ROOT_EXTRA_THICKNESS = 0.60
 
 # Speaker grille through the flush rear cover.
 ENABLE_SPEAKER_VENTS = True
@@ -208,6 +211,27 @@ USB_C_CENTRE_FROM_FRONT = (
 ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
+
+# Side buttons for the two upper tactile switches. The switch envelopes come
+# from KEY1/KEY2 in the supplied STEP assembly after rotating its X/Z axes
+# into this generator's orientation. The face position is an envelope, not a
+# guaranteed actuation surface; tune the rest gap after a physical fit test.
+ENABLE_SIDE_SWITCH_BUTTONS = True
+SWITCH_CENTRE_Z = 17.10
+SWITCH_CENTRE_FROM_FRONT = 7.60
+# At the plunger centerline (Z=17.1), the switch body reaches about X=13.62;
+# its overall rotated bounding box reaches X=13.80 at another Z position.
+SWITCH_OUTER_FACE_X = 13.60
+SWITCH_REST_GAP = 0.00
+SWITCH_GUIDE_INNER_X = 18.50
+SWITCH_GUIDE_OUTER_DIAMETER = 4.60
+SWITCH_GUIDE_BORE_DIAMETER = 3.20
+SWITCH_PLUNGER_DIAMETER = 2.80
+SWITCH_TIP_DIAMETER = 1.80
+SWITCH_SHOULDER_DIAMETER = 4.00
+SWITCH_SHOULDER_LENGTH = 0.90
+SWITCH_BUTTON_RECESS = 0.20
+SWITCH_VENT_KEEP_OUT = 0.80
 
 # Optional simplified viewport-only hardware for checking enclosure fit. These
 # measurements are taken from the supplied drawing and STEP bounding boxes.

@@ -34,6 +34,11 @@ def parse_args() -> argparse.Namespace:
         default=PROJECT_ROOT / "docs" / "images",
         help="Directory for the two PNG files (default: docs/images).",
     )
+    parser.add_argument(
+        "--use-current-scene",
+        action="store_true",
+        help="Render a .blend already passed to Blender instead of rebuilding it.",
+    )
     return parser.parse_args(arguments)
 
 
@@ -49,7 +54,8 @@ def main() -> None:
     destination = args.output_dir.resolve()
     destination.mkdir(parents=True, exist_ok=True)
 
-    build_enclosure()
+    if not args.use_current_scene:
+        build_enclosure()
     scene = bpy.context.scene
     scene.render.engine = "BLENDER_WORKBENCH"
     scene.render.resolution_x = 1200
@@ -76,6 +82,7 @@ def main() -> None:
     views = (
         ("blender-front.png", (85.0, -110.0, 72.0)),
         ("blender-back.png", (-85.0, 110.0, 72.0)),
+        ("blender-side-buttons.png", (110.0, -22.0, 35.0)),
     )
     for filename, eye in views:
         point_camera(camera, eye)
