@@ -1,0 +1,30 @@
+# Blender exports and temporary saves. Ready-made STLs live in models/.
+/output/
+*.blend
+*.blend1
+*.blend2
+*.blend@
+*.stl
+*.3mf
+!/models/*.stl
+
+# Python caches and local environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Editor and operating system files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local print and render experiments. Curated images belong in docs/images/.
+/renders/
+/prints/
+
+# Vendor hardware references (Waveshare drawings and STEP). Download them from
+# the board's wiki page instead of committing them; see README.
+/ESP32-S3-Touch-AMOLED-1/
+/ESP32-S3-Touch-AMOLED-1-2/

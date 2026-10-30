@@ -1,155 +1,147 @@
-# ESP32-S3 Touch AMOLED 1.75 enclosure
+# ESP32-S3 Touch AMOLED 1.75" enclosure
 
-The enclosure is a parameterized square shell plus a separate flush rear
-cover generated in Blender. It contains:
+A parametric, 3D-printable enclosure for the
+[Waveshare ESP32-S3-Touch-AMOLED-1.75](https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75)
+round display board. The whole model is generated from Python inside Blender,
+so every dimension and print allowance is a named constant you can change and
+regenerate. No Blender project file is needed.
 
--   a fully hollow 1.20 mm shell sized for three extrusion lines with a
-    standard 0.40 mm nozzle;
--   a stepped front pocket: a shallow display recess followed by a smaller
-    PCB opening in a concentric annular support ring. A thin circular sleeve
-    connects the ring directly to the front shell, supporting the display
-    flush with the front surface;
--   10 mm-wide top, bottom, left, and right relief windows through the circular
-    seat for display cables;
--   three rear M2 access holes;
--   three recessed screw cups that bridge the rear-wall gap to the hardware's
-    M2 × 3.5 mm threaded standoffs;
--   rear openings for the 8-pin interface, speaker connector, and battery  
-    connector; and
--   two bottom microphone holes flanking a rounded USB-C access opening
-    with an optional internal guide tunnel;
--   an independently switchable centered rear support-access hole, disabled by
-    default so the accessory holders have a continuous mounting surface;
--   an optional rear accessory chamber with L-shaped corner holders for a
-    22 × 53 mm battery, 30 × 30 mm GPS module, and a speaker rotated to
-    30 × 20 mm; and
--   a flush press-on cover retained by two hidden cantilever clips engaging
-    the top and bottom walls, with no raised rails, tabs, or latch bar; and
--   a staggered circular speaker grille aligned with the speaker holder.
--   Mac-Pro-inspired staggered circular vent lattices through both base side
-    walls and the base top wall, using support-friendly 2 mm holes;
--   one microphone hole on each side of USB-C through the base bottom; and
--   matching seven-hole honeycomb microphone/air rosettes through the
-    accessory-layer bottom; and
--   an optional simplified ESP32 fit-check assembly in a separate viewport-only
-    collection, excluded from both STL files.
+| Front | Rear |
+| :---: | :---: |
+| ![Front view of the enclosure](docs/images/blender-front.png) | ![Rear view of the enclosure](docs/images/blender-back.png) |
 
-The supplied mechanical drawings are the dimensional reference. The microphone
-acoustic-port centres are not dimensioned on those drawings, so their bottom
-positions beside USB-C are estimates scaled from the rear view. They are clearly
-identified near the top of the script for adjustment after a test fit.
+> **Just want to print it?** Download the ready-made STLs from
+> [`models/`](models/) and read the [printing and assembly guide](docs/printing-and-assembly.md).
+> You only need Blender if you want to change the design.
 
-## Generate in Blender
+## Features
 
-Open Blender, switch to **Scripting**, open `blender_enclosure.py`, then press  
-**Run Script**. The generated object is named `ESP32_Display_Enclosure`.
+- Compact 60 × 60 × 13.5 mm hollow shell with 1.2 mm walls.
+- Stepped display seat (2.05 mm deep) with a PCB opening, cable reliefs on all
+  four sides, and an optional vertical-radius compensation for upright prints.
+- Three M2 screw access holes with recessed heads and short inward risers.
+- Cutouts for the 8-pin header, speaker and battery connectors, both
+  microphones, and a rounded USB-C opening with an internal guide tunnel.
+- Rear component tray with corner holders for a 22 × 53 mm battery,
+  30 × 30 mm GPS module, and 30 × 20 mm speaker, plus a 24 × 24 mm GPS window.
+- Separate flat rear cover with a speaker grille, internal locating rails, and
+  two snap clips. The outside is flush, with no raised latches.
+- Staggered airflow vents in the sides and top.
+- An optional simplified hardware model for checking fit in Blender. It is
+  never exported to STL.
 
-The script also supports the Jacques Lucke **Blender Development** extension:
-open `blender_enclosure.py` in VS Code and use **Blender: Run Script**.
+## Quick start
 
-For command-line generation and automatic STL/Blend export:
+### Option A: print the supplied STLs
+
+1. Take `esp32_s3_touch_amoled_1_75_enclosure.stl` and
+   `esp32_s3_touch_amoled_1_75_flush_cover.stl` from [`models/`](models/).
+2. Follow [docs/printing-and-assembly.md](docs/printing-and-assembly.md).
+3. Print a small fit test first. Printer tolerances vary.
+
+### Option B: generate the model yourself
+
+Requirements: [Blender](https://www.blender.org/download/). The model is
+built and tested with Blender 5.2 LTS. The code also contains fallbacks for the
+older STL exporter and Boolean solver names, but older versions are untested.
+
+From the repository root:
 
 ```sh
 blender --background --python blender_enclosure.py -- --export
 ```
 
-This writes the Blend file, enclosure STL, and separate flush-cover STL to
-`output/`. To select another directory:
+This writes the following to the git-ignored `output/` directory (building
+takes a few minutes because of the many exact Boolean operations):
 
-```sh
-blender --background --python blender_enclosure.py -- \
-  --export --output-dir my_output
+```text
+output/
+  esp32_s3_touch_amoled_1_75_enclosure.blend
+  esp32_s3_touch_amoled_1_75_enclosure.stl
+  esp32_s3_touch_amoled_1_75_flush_cover.stl
 ```
 
-## First parameters to tune
+Use `--output-dir PATH` for another location. Relative paths resolve from the
+repository root. Without `--export`, the script only builds the scene.
 
-All measurements use millimetres and are grouped under `USER PARAMETERS`.
+You can also open `blender_enclosure.py` in Blender's **Scripting** workspace
+and press **Run Script**, or use the VS Code *Blender Development* extension.
 
--   `CASE_WIDTH`, `CASE_HEIGHT`, `CASE_DEPTH`: overall square enclosure size;
-    the main display section now uses a compact 13.5 mm depth.
--   `ENCLOSURE_THICKNESS`: side, front, and rear wall thickness, currently
-    1.20 mm.
--   `OUTER_CORNER_RADIUS`: currently `0.0`, producing sharp square corners;
-    set it above zero when rounded corners are restored.
--   `DEVICE_REAR_CLEARANCE` and `DEVICE_RADIAL_CLEARANCE`: required fit
-    allowances checked whenever dimensions or wall thickness change.
--   `ALLOW_REAR_CONNECTOR_PROTRUSION`: allows the deeper 8-pin, battery, and
-    speaker connectors to pass through their existing rear openings into the
-    accessory chamber. The 10.40 mm core hardware stack remains inside the
-    13.5 mm main section.
--   `DISPLAY_POCKET_DIAMETER`: shallow recess for the Ø48.96 mm display.
--   `DISPLAY_RECESS_DEPTH`: 2.05 mm, matching the protruding display stack.
--   `BOARD_OPENING_DIAMETER`: 46.70 mm through-opening for the Ø46.00 mm PCB,
-    providing 0.35 mm radial clearance.
--   `DISPLAY_VERTICAL_RADIUS_COMPENSATION`: adds 0.20 mm to the vertical radius
-    of both stepped display openings while leaving their horizontal radii
-    unchanged. The modeled openings are subtle ellipses intended to print
-    circular when the enclosure is printed upright.
--   `DISPLAY_PLATFORM_THICKNESS` and `DISPLAY_SUPPORT_WALL_THICKNESS`: both
-    follow the 1.20 mm enclosure thickness. The sleeve and flat ring are fused
-    into one watertight display cup before it is joined to the shell, preventing
-    Bambu Studio from treating the ring as a separate floating body. Both
-    concentric display passages are re-cut after the union to prevent slicer
-    mesh repair from closing the opening with a solid top skin.
--   `ENABLE_DISPLAY_CABLE_RELIEFS` and `DISPLAY_CABLE_RELIEF_WIDTH`: control
-    all four cable windows; their default width is 10.0 mm.
--   `SCREW_CENTRES`: the three M2 locations from the mechanical drawing.
--   `ENABLE_RECESSED_SCREW_WELLS` and the `SCREW_WELL_*` parameters: control
-    the three guided screw recesses and their bottom shoulders. With the
-    13.5 mm main section and 1 mm depth reduction, each bump projects 0.9 mm
-    inward from the rear wall.
--   `PIN8_OPENING`, `SPEAKER_OPENING`, `BATTERY_OPENING`: rear connector  
-    openings as `(centre_x, centre_z, width, height)`.
--   `BASE_MIC_CENTRES_X`: estimated bottom acoustic-port centres beside USB-C.
--   `USB_C_OPENING_WIDTH`, `USB_C_OPENING_DEPTH`, and
-    `USB_C_CENTRE_FROM_FRONT`: STEP-derived bottom-side USB-C geometry. The
-    receptacle envelope is 9.58 × 4.16 mm. The cutout is now 11.58 × 6.16 mm,
-    providing 1.0 mm clearance on every side. Its center is 7.99 mm behind the
-    display after the latest 0.40 mm move toward the display/front. The
-    cutout uses the connector's rounded capsule profile rather than a box.
--   `USB_C_TUNNEL_LENGTH` and `USB_C_TUNNEL_WALL`: internal guide sleeve
-    length and wall thickness.
--   `ENABLE_USB_C_TUNNEL`: currently `True`, adding a 6.2 mm-long rounded guide
-    tunnel from the shell exterior to the STEP-aligned USB-C receptacle.
--   `ENABLE_REAR_SUPPORT_ACCESS_HOLE`: enables or disables the additional
-    centered rear opening without changing any other hole. It is currently
-    `False` for a solid accessory mounting floor.
--   `REAR_SUPPORT_ACCESS_HOLE_DIAMETER`: rear support-access diameter,
-    defaulting to 28.0 mm to remain clear of the connector openings.
--   `ENABLE_BACK_ACCESSORY_LAYER`: enables the complete rear component chamber
-    and separate flush snap cover.
--   `ACCESSORY_DEPTH_REDUCTION`: shortens the rear chamber by 2 mm, leaving
-    10.8 mm internal depth. Verify any nominally 12 mm component before print.
--   `ENABLE_GPS_MIDDLE_PANEL_OPENING`: cuts a 24 × 24 mm GPS antenna window
-    through the fixed middle panel while leaving the rear cover intact. A
-    circular solid keep-out preserves and connects the nearby screw cup.
--   `MODULE_HOLDER_CLEARANCE`, `MODULE_HOLDER_HEIGHT`, and
-    `MODULE_HOLDER_ARM_LENGTH`: control the open L-shaped corner retainers.
--   `ENABLE_FLUSH_SNAP_COVER` and the `ACCESSORY_SNAP_*` parameters control one
-    top and one bottom clip with matching release slots. Both clips sit in the
-    X-axis gap between the GPS/speaker and battery footprints. All retention
-    features remain inside the 60 × 60 mm outline.
--   `ENABLE_COVER_ALIGNMENT_SKIRT` and the `ACCESSORY_ALIGNMENT_SKIRT_*`
-    parameters add a shallow internal tongue around the cover. It nests inside
-    the four case walls to prevent vertical and lateral panel movement while
-    leaving the exterior flat.
--   `ENABLE_SPEAKER_VENTS` and the `SPEAKER_VENT_*` parameters: control the
-    rear-cover speaker grille pattern.
--   `ENABLE_BASE_AIR_VENTS`, `BASE_AIR_VENT_PITCH`, and the related row/column
-    parameters: control the centered staggered vent lattices on the original
-    display enclosure.
--   `ENABLE_BASE_MIC_PORTS` and the `BASE_MIC_*` parameters: control the two
-    bottom microphone holes beside USB-C.
--   `ENABLE_DUMMY_ESP32`: shows the drawing/STEP-measured display stack,
-    carrier envelope, PCB, USB-C, major connectors, microphones, and screw
-    bosses in the
-    `FIT_CHECK_DUMMY_ESP32` Blender collection. Hide the collection for a clean
-    enclosure view; it is never included in STL exports.
--   `ENABLE_ACCESSORY_BOTTOM_MIC_VENTS` and the
-    `ACCESSORY_BOTTOM_MIC_VENT_*` parameters: control the matching holes in the
-    accessory-layer bottom wall.
+## Customising
 
-Rear feature coordinates match the mechanical drawing as viewed from outside
-the rear: positive drawing X is right and positive Z is up. The script mirrors
-drawing X into Blender world X because the rear face is viewed along -Y. The
-front/display face is -Y and the rear/connector face is +Y.
+Open [`esp32_enclosure/config.py`](esp32_enclosure/config.py), change values in
+the **USER PARAMETERS** section (millimetres), and rerun. The most useful ones:
+
+| Parameter | Default | Purpose |
+| --- | ---: | --- |
+| `MIN_CASE_DEPTH` | 13.5 | Main shell depth |
+| `ENCLOSURE_THICKNESS` | 1.2 | Shell, rear wall, cover, display support |
+| `DISPLAY_DIAMETRAL_CLEARANCE` | 0.4 | Clearance around the display glass |
+| `BOARD_DIAMETRAL_CLEARANCE` | 0.7 | Clearance around the Ø46 mm PCB |
+| `DISPLAY_VERTICAL_RADIUS_COMPENSATION` | 0.2 | Extra vertical radius for upright printing |
+| `SCREW_WELL_DEPTH_REDUCTION` | 1.0 | Leaves 0.9 mm inward screw risers |
+| `USB_C_CENTRE_FROM_FRONT` | 7.99 | USB-C cutout position from the display face |
+| `ACCESSORY_INTERNAL_DEPTH` | 10.8 | Space from middle wall to rear cover |
+| `ENABLE_*` | varies | Switch features such as vents, tunnel, cover clips, fit-check model |
+
+The script validates parameters before building and raises a descriptive error
+if a combination is impossible (for example, a pocket larger than the case).
+See [docs/development.md](docs/development.md) for the code layout.
+
+### Preview renders
+
+```sh
+blender --background --python scripts/render_preview.py
+```
+
+This regenerates `docs/images/blender-front.png` and `blender-back.png`.
+
+## Things to check before you print
+
+- **Rear chamber depth.** The tray is 10.8 mm deep, while the accessory
+  height is specified as 12 mm. A rigid 12 mm module will interfere with the
+  cover. Measure your parts and raise `ACCESSORY_INTERNAL_DEPTH` if needed.
+- **Microphone ports.** Their centres are estimated from the drawing, not
+  dimensioned. Verify against your board.
+- **USB-C plug.** Test the opening with your actual cable head.
+- **Tolerances.** The allowances are a first-print starting point, not a
+  guarantee for any printer or material.
+
+The measured dimensions, coordinate system and allowances are documented in
+[docs/geometry.md](docs/geometry.md).
+
+## Repository layout
+
+```text
+blender_enclosure.py     Entry script (Blender Run Script / command line)
+esp32_enclosure/         Generator package (config, geometry, export)
+scripts/                 Preview-render helper
+models/                  Pre-generated STL files
+docs/                    Geometry notes, printing guide, development notes
+```
+
+## Hardware reference files
+
+This repository does not redistribute Waveshare's CAD/PDF files. Download the
+board's drawings and STEP model from the
+[Waveshare wiki](https://www.waveshare.com/wiki/ESP32-S3-Touch-AMOLED-1.75) if
+you want to re-check the measurements in [docs/geometry.md](docs/geometry.md).
+The generator itself does not need them.
+
+## Contributing
+
+Issues and pull requests are welcome, especially fit reports from real prints
+(printer, material, and what needed adjusting). Please keep the exported model
+stable unless a change is intended, and describe any geometry change in the
+pull request. See [docs/development.md](docs/development.md).
+
+## Disclaimer
+
+This is an independent community project. It is not affiliated with or endorsed
+by Waveshare or Espressif. The enclosure is provided as is; check fit and
+electrical clearances yourself, especially around batteries.
+
+## License
+
+[MIT](LICENSE). The license covers the code, documentation, and generated
+models in this repository. Waveshare's hardware designs remain theirs.

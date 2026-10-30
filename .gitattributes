@@ -1,0 +1,6 @@
+# Keep source and documentation portable across macOS, Windows, and Linux.
+*.py text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.stl binary
+*.png binary
