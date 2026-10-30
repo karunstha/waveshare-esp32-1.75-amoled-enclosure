@@ -36,7 +36,13 @@ It is a visual aid, not an exact copy of every STEP solid.
 - PCB opening: 46.70 mm horizontally, 47.10 mm vertically.
 - Vertical ellipse compensation: +0.20 mm radius on both front openings.
 - Screw through-hole: Ø2.40 for M2; cup outside diameter: Ø7.40.
-- USB-C opening: 11.58 × 6.16, centered 7.99 mm behind the front face.
+- USB-C opening: 11.58 × 6.16, centered 9.20 mm behind the front face.
+  Its rear edge is at 12.28 mm, leaving 1.22 mm of the 13.50 mm main shell.
+  The tunnel ends at 13.08 mm and stays inside the shell. This opening is
+  1.13 mm rearward of the STEP receptacle center; confirm plug access with
+  the physical board and cable.
+- Both microphone holes are centered 9.20 mm behind the front face, in line
+  with the USB-C cutout. Check their alignment with the real microphone ports.
 - Cover locating rail clearance to the chamber wall: 0.20 mm.
 - Rear-cover clips: 1.10 mm flexible beams with 1.70 mm thick, 2.0 mm long
   roots. Root reinforcement grows inward with 0.15 mm clearance to the tray

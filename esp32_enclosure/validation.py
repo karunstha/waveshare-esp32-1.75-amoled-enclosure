@@ -78,6 +78,13 @@ def validate_parameters() -> None:
         > cfg.CASE_DEPTH
     ):
         raise ValueError("USB-C guide tunnel extends beyond the rear surface.")
+    if (
+        cfg.USB_C_CENTRE_FROM_FRONT
+        + cfg.USB_C_OPENING_DEPTH / 2.0
+        + cfg.REAR_WALL
+        > cfg.CASE_DEPTH
+    ):
+        raise ValueError("USB-C opening leaves less than a full rear wall.")
     if cfg.USB_C_TUNNEL_LENGTH <= cfg.SIDE_WALL:
         raise ValueError("USB-C guide tunnel must extend beyond the side wall.")
     if cfg.ENABLE_SIDE_SWITCH_BUTTONS:
@@ -143,7 +150,9 @@ def validate_parameters() -> None:
     ):
         raise ValueError("Base airflow vent pattern is invalid.")
     if cfg.ENABLE_BASE_MIC_PORTS and (
-        cfg.BASE_MIC_PORT_DIAMETER <= 0 or len(cfg.BASE_MIC_CENTRES_X) != 2
+        cfg.BASE_MIC_PORT_DIAMETER <= 0
+        or len(cfg.BASE_MIC_CENTRES_X) != 2
+        or not 0 < cfg.BASE_MIC_CENTRE_FROM_FRONT < cfg.CASE_DEPTH
     ):
         raise ValueError("Exactly two valid USB-C microphone ports are required.")
     if cfg.ENABLE_REAR_SUPPORT_ACCESS_HOLE and not (

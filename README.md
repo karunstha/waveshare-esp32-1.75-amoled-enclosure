@@ -83,7 +83,8 @@ the **USER PARAMETERS** section (millimetres), and rerun. The most useful ones:
 | `BOARD_DIAMETRAL_CLEARANCE` | 0.7 | Clearance around the Ø46 mm PCB |
 | `DISPLAY_VERTICAL_RADIUS_COMPENSATION` | 0.2 | Extra vertical radius for upright printing |
 | `SCREW_WELL_DEPTH_REDUCTION` | 1.0 | Leaves 0.9 mm inward screw risers |
-| `USB_C_CENTRE_FROM_FRONT` | 7.99 | USB-C cutout position from the display face |
+| `USB_C_CENTRE_FROM_FRONT` | 9.2 | USB-C cutout center from the display face |
+| `BASE_MIC_CENTRE_FROM_FRONT` | 9.2 | Two bottom mic-hole centers from the display face |
 | `ACCESSORY_INTERNAL_DEPTH` | 10.8 | Space from middle wall to rear cover |
 | `ACCESSORY_SNAP_CLIP_THICKNESS` | 1.1 | Flexible rear-cover clip beam |
 | `ACCESSORY_SNAP_WALL_CLEARANCE` | 0.15 | Gap between clips and tray walls |

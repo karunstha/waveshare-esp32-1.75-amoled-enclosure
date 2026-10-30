@@ -185,6 +185,8 @@ BASE_TOP_VENT_ROWS = 4
 ENABLE_BASE_MIC_PORTS = True
 BASE_MIC_PORT_DIAMETER = 2.0
 BASE_MIC_CENTRES_X = (-11.5, +11.5)
+# Keep both acoustic holes aligned front-to-rear with the USB-C cutout.
+BASE_MIC_CENTRE_FROM_FRONT = 9.20
 
 # Matching seven-hole honeycomb rosettes in the bottom of the rear accessory
 # layer near its front edge. The two actual base mic ports remain single holes.
@@ -202,12 +204,9 @@ USB_C_RECEPTACLE_DEPTH = 4.16
 USB_C_CUTOUT_CLEARANCE = 2.00
 USB_C_OPENING_WIDTH = USB_C_RECEPTACLE_WIDTH + USB_C_CUTOUT_CLEARANCE
 USB_C_OPENING_DEPTH = USB_C_RECEPTACLE_DEPTH + USB_C_CUTOUT_CLEARANCE
-# Start from 10.07 mm, move toward the display by half the finished opening
-# depth, move 2.40 mm toward the base/rear, then move the tunnel 1.40 mm back
-# up toward the display.
-USB_C_CENTRE_FROM_FRONT = (
-    10.07 - USB_C_OPENING_DEPTH / 2.0 + 2.40 - 1.40
-)
+# Center of the external bottom cutout, measured rearward from the front face.
+# At 9.20 mm, the 6.16 mm opening ends at 12.28 mm in the 13.50 mm shell.
+USB_C_CENTRE_FROM_FRONT = 9.20
 ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80

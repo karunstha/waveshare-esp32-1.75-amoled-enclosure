@@ -341,7 +341,7 @@ def _cut_base_vents(enclosure, front_y: float) -> None:
         subtract_many(enclosure, airflow_cutters, "Base_Airflow_Vent_Pattern")
 
 
-def _cut_base_mic_ports(enclosure, usb_y: float) -> None:
+def _cut_base_mic_ports(enclosure, mic_y: float) -> None:
     """Cut the two microphone ports flanking USB-C."""
     bottom_z = -cfg.CASE_HEIGHT / 2.0
     # The two actual microphone ports through the base bottom, one immediately
@@ -352,7 +352,7 @@ def _cut_base_mic_ports(enclosure, usb_y: float) -> None:
                 f"Base_Microphone_Hole_{index}",
                 cfg.BASE_MIC_PORT_DIAMETER,
                 cfg.SIDE_WALL + 2 * cfg.BOOLEAN_MARGIN,
-                location=(mic_x, usb_y, bottom_z),
+                location=(mic_x, mic_y, bottom_z),
             )
             subtract(enclosure, mic_port)
 
@@ -482,10 +482,12 @@ def build_enclosure():
 
     rear_y = cfg.CASE_DEPTH / 2.0
     _cut_rear_features(enclosure, front_y, rear_y)
-    usb_y = _cut_usb_c(enclosure, front_y)
+    _cut_usb_c(enclosure, front_y)
     plungers = build_side_switches(enclosure, front_y)
     _cut_base_vents(enclosure, front_y)
-    _cut_base_mic_ports(enclosure, usb_y)
+    _cut_base_mic_ports(
+        enclosure, front_y + cfg.BASE_MIC_CENTRE_FROM_FRONT
+    )
 
     cover = build_back_accessory_layer(enclosure, rear_y)
     dummy_objects = build_dummy_esp32(front_y)
