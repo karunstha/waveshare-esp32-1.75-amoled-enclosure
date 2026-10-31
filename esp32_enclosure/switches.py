@@ -3,8 +3,8 @@
 The parts are shown in their assembled positions. Each plunger is a separate
 printable object. Install it from inside the shell before seating the board:
 its shoulder is wider than the bore and keeps it from escaping through the
-side wall. The tip is sized to meet the measured switch envelope at rest; tune
-its length against the moving contact face on the real board.
+side wall. Its X reach is a configurable starting point; tune the tip against
+the moving contact face on the real board after the vertical fit adjustment.
 """
 
 from __future__ import annotations
@@ -49,7 +49,7 @@ def build_side_switches(enclosure, front_y: float) -> list:
         subtract(enclosure, bore)
 
         # The wider inner shoulder stops at the guide entrance. The small tip
-        # projects beyond the guide toward the switch's nominal contact face.
+        # projects beyond the guide toward the switch's contact face.
         shaft = add_x_cylinder(
             f"{side}_Switch_Plunger",
             cfg.SWITCH_PLUNGER_DIAMETER,

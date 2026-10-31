@@ -117,7 +117,7 @@ def build_dummy_esp32(front_y: float) -> list:
                 location=(
                     sign * 11.31,
                     front_y + cfg.SWITCH_CENTRE_FROM_FRONT,
-                    cfg.SWITCH_CENTRE_Z,
+                    cfg.DUMMY_SWITCH_CENTRE_Z,
                 ),
             )
             register(switch, connector_material, wire=True)

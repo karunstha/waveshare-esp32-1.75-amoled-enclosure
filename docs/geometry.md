@@ -48,11 +48,11 @@ It is a visual aid, not an exact copy of every STEP solid.
   roots. Root reinforcement grows inward with 0.15 mm clearance to the tray
   wall; only the hooks enter the latch slots.
 - Side button guide: Ø4.6 outer, Ø3.2 bore; Ø2.8 plunger and Ø1.8 tip.
-- Side button tips nominally touch the switch body's outer envelope. This is
-  a tunable first-print position because the exact moving contact face is not
-  specified by the enclosure drawing.
-- The chosen contact target is X = ±13.6 at Z = 17.1. The whole rotated switch
-  body reaches X = ±13.8 elsewhere, so the centerline cross-section matters.
+- The printed button guides are centered at Z = 19.1 mm, 2.0 mm above their
+  original position. The STEP switch envelopes in the dummy model stay at
+  Z = 17.1 mm for reference to the supplied CAD.
+- The tip's X target remains ±13.6 mm from the earlier fit. Verify tip contact
+  with the physical board after raising the guides.
 
 These allowances are design choices for a first print. They are not claims
 about the tolerance of a particular printer or material.

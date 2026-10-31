@@ -211,15 +211,15 @@ ENABLE_USB_C_TUNNEL = True
 USB_C_TUNNEL_LENGTH = 6.2
 USB_C_TUNNEL_WALL = 0.80
 
-# Side buttons for the two upper tactile switches. The switch envelopes come
-# from KEY1/KEY2 in the supplied STEP assembly after rotating its X/Z axes
-# into this generator's orientation. The face position is an envelope, not a
-# guaranteed actuation surface; tune the rest gap after a physical fit test.
+# Side buttons for the two upper tactile switches. Their guide center is 2 mm
+# higher than the STEP switch-envelope center to reflect the physical fit
+# correction. Tune against the actual board before printing the full shell.
 ENABLE_SIDE_SWITCH_BUTTONS = True
-SWITCH_CENTRE_Z = 17.10
+SWITCH_CENTRE_Z = 19.10
 SWITCH_CENTRE_FROM_FRONT = 7.60
-# At the plunger centerline (Z=17.1), the switch body reaches about X=13.62;
-# its overall rotated bounding box reaches X=13.80 at another Z position.
+# This X target was measured at the original STEP switch centerline and is
+# retained while shifting the guide vertically; confirm its tip contact on
+# the actual board.
 SWITCH_OUTER_FACE_X = 13.60
 SWITCH_REST_GAP = 0.00
 SWITCH_GUIDE_INNER_X = 18.50
@@ -247,6 +247,9 @@ DUMMY_USB_C_CENTRE_FROM_FRONT = 8.07
 DUMMY_USB_C_CENTRE_X = 0.02
 DUMMY_USB_C_CENTRE_Z = -20.03
 DUMMY_USB_C_HEIGHT = 7.53
+# The STEP switch envelope remains at its measured position in the fit-check
+# collection, independent of the printed button guide's Z adjustment.
+DUMMY_SWITCH_CENTRE_Z = 17.10
 DUMMY_SCREW_BOSS_DIAMETER = 3.50
 DUMMY_SCREW_BOSS_FRONT_FROM_DISPLAY = 5.90
 DUMMY_SCREW_BOSS_DEPTH = 4.50
